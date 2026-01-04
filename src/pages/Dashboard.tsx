@@ -2,7 +2,8 @@ import DashboardSidebar from "@/components/dashboard/DashboardSidebar";
 import CurrentlyReading from "@/components/dashboard/CurrentlyReading";
 import FriendActivity from "@/components/dashboard/FriendActivity";
 import RecommendedBooks from "@/components/dashboard/RecommendedBooks";
-import { Bell, Menu, Plus, BookOpen } from "lucide-react";
+import NavBar from "@/components/dashboard/Navbar";
+import { Bell, Menu, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { useState } from "react";
@@ -12,16 +13,18 @@ const Dashboard = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex flex-col min-h-screen">
       {/* Desktop Sidebar */}
+     <div className="fixed top-0 left-0 right-0 z-10">
+      <NavBar />
+     </div>
+
+     <div className="flex flex-1 w-full pt-16">
       <DashboardSidebar />
 
       {/* Mobile Header */}
       <div className="lg:hidden fixed top-0 left-0 right-0 z-50 h-16 border-b border-surface-highlight bg-background/95 backdrop-blur-sm flex items-center justify-between px-4">
         <Link to="/" className="flex items-center gap-2">
-          <div className="flex size-8 items-center justify-center rounded-lg bg-primary/20 text-primary">
-            <BookOpen className="size-5" />
-          </div>
           <span className="font-bold">Bookworm</span>
         </Link>
         <div className="flex items-center gap-2">
@@ -64,6 +67,7 @@ const Dashboard = () => {
           </div>
         </div>
       </main>
+      </div>
     </div>
   );
 };

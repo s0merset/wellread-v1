@@ -1,14 +1,11 @@
 import { Link, useLocation } from "react-router-dom";
 import {
-  BookOpen,
   LayoutDashboard,
   Book,
   Heart,
   PenLine,
   Users,
-  Settings,
-  Bell,
-  Plus,
+  Settings
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -28,38 +25,17 @@ const DashboardSidebar = () => {
 
   return (
     <aside className="hidden lg:flex flex-col w-72 border-r border-surface-highlight bg-card min-h-screen">
-      {/* Logo */}
-      <div className="p-6 border-b border-surface-highlight">
-        <Link to="/" className="flex items-center gap-3">
-          <div className="flex size-10 items-center justify-center rounded-lg bg-primary/20 text-primary">
-            <BookOpen className="size-6" />
-          </div>
-          <span className="text-xl font-bold">Bookworm</span>
-        </Link>
-      </div>
 
       {/* Quick Actions */}
-      <div className="p-4 border-b border-surface-highlight">
-        <div className="flex items-center gap-2">
-          <Button className="flex-1 gap-2">
-            <Plus className="size-4" />
-            Log Book
-          </Button>
-          <Button variant="outline" size="icon" className="border-surface-highlight">
-            <Bell className="size-4" />
-          </Button>
-        </div>
-      </div>
 
       {/* User Profile */}
       <div className="p-4 border-b border-surface-highlight">
         <div className="flex items-center gap-3">
           <div className="size-12 rounded-full bg-gradient-to-br from-primary to-purple-500 flex items-center justify-center text-lg font-bold">
-            A
+            F
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="font-bold truncate">Alex Readmore</h3>
-            <p className="text-sm text-muted-foreground truncate">@alexreads</p>
+            <h3 className="font-bold truncate">Francis Rey Betonio</h3>
           </div>
         </div>
 

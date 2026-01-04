@@ -1,4 +1,4 @@
-import { Clock, Bookmark, GripVertical, ArrowRight } from "lucide-react";
+import { Clock, GripVertical, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 
@@ -21,9 +21,6 @@ const CurrentlyReading = () => {
   return (
     <div className="rounded-xl border border-surface-highlight bg-card p-6">
       <div className="flex items-center gap-2 mb-6">
-        <div className="flex size-8 items-center justify-center rounded-lg bg-primary/20 text-primary">
-          <Bookmark className="size-4" />
-        </div>
         <h2 className="text-lg font-bold">Currently Reading</h2>
       </div>
 
@@ -41,10 +38,6 @@ const CurrentlyReading = () => {
             <span className="flex items-center gap-1">
               <Clock className="size-3" />
               {currentBook.timeLeft} left
-            </span>
-            <span className="flex items-center gap-1">
-              <Bookmark className="size-3" />
-              Page {currentBook.currentPage}/{currentBook.totalPages}
             </span>
           </div>
 

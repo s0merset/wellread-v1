@@ -4,9 +4,9 @@ import { Button } from "@/components/ui/button";
 const activities = [
   {
     type: "rating",
-    user: { name: "Sarah J.", initial: "S" },
+    user: { name: "Jam T.", initial: "J" },
     timeAgo: "2h ago",
-    book: { title: "The Midnight Library", author: "Matt Haig" },
+    book: { title: "The Brothers Karamazov", author: "Fyodor Dostoevsky" },
     rating: 5,
     review: "Absolutely loved this concept! It made me rethink so many choices...",
     likes: 12,
@@ -14,7 +14,7 @@ const activities = [
   },
   {
     type: "finished",
-    user: { name: "Mike Chen", avatar: "https://lh3.googleusercontent.com/aida-public/AB6AXuDpQkhpNALiuhl0Qa3MhIYFLHAs_uGu76iaCGQIGmvGHf-DT6IUw2xwzRziXPlf0BiBU9R22DzOHSOE2noF-g2bSnGAJj1W0hqdGjd_ubzMj_se5f0BKQj8YfYvvwE8Vv9qvnAZ_AofEbJinb2Ul-tC6aHm7rWvUR3nPvqC7j6CKboUkFooB1HPQ1yrAp0mv0hgm-HmaoBNWiATIEJsLsdXoQHPrZq257gQFgPV3hboCbJqy35Ewd9zNPkgZWdxIl75EPy3ky14lg" },
+    user: { name: "Hayman Waman", avatar: "https://lh3.googleusercontent.com/aida-public/AB6AXuDpQkhpNALiuhl0Qa3MhIYFLHAs_uGu76iaCGQIGmvGHf-DT6IUw2xwzRziXPlf0BiBU9R22DzOHSOE2noF-g2bSnGAJj1W0hqdGjd_ubzMj_se5f0BKQj8YfYvvwE8Vv9qvnAZ_AofEbJinb2Ul-tC6aHm7rWvUR3nPvqC7j6CKboUkFooB1HPQ1yrAp0mv0hgm-HmaoBNWiATIEJsLsdXoQHPrZq257gQFgPV3hboCbJqy35Ewd9zNPkgZWdxIl75EPy3ky14lg" },
     timeAgo: "5h ago",
     book: { title: "Atomic Habits", author: "James Clear" },
     review: "Life changing read. Highly recommend.",
@@ -22,9 +22,9 @@ const activities = [
   },
   {
     type: "list",
-    user: { name: "David K.", initial: "D" },
+    user: { name: "Pato Toya", initial: "P" },
     timeAgo: "1d ago",
-    listName: "Space Operas to Get Lost In",
+    listName: "",
     bookCount: 8,
     likes: 8,
   },
@@ -35,9 +35,6 @@ const FriendActivity = () => {
     <div className="rounded-xl border border-surface-highlight bg-card p-6">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-2">
-          <div className="flex size-8 items-center justify-center rounded-lg bg-primary/20 text-primary">
-            <Users className="size-4" />
-          </div>
           <h2 className="text-lg font-bold">Friend Activity</h2>
         </div>
         <Button variant="ghost" size="sm" className="text-primary">

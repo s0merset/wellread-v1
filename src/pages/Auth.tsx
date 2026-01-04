@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { BookOpen, User, Lock, Eye, EyeOff, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,10 +11,12 @@ const Auth = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [username, setUsername] = useState("");
+  const navigate = useNavigate();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     // Placeholder for auth logic
+    navigate("/Dashboard");
   };
 
   return (
@@ -26,27 +28,11 @@ const Auth = () => {
           <div className="absolute bottom-40 right-10 size-[300px] rounded-full bg-purple-500/10 blur-[80px]" />
         </div>
 
-        <div className="relative z-10 flex flex-col justify-between p-12 w-full">
-          {/* Logo */}
+	<div className="relative z-10 flex flex-col justify-between p-12 w-full">
           <Link to="/" className="flex items-center gap-3">
-            <div className="flex size-10 items-center justify-center rounded-lg bg-primary/20 text-primary">
-              <BookOpen className="size-6" />
-            </div>
-            <span className="text-2xl font-bold">Bookworm</span>
+            <span className="text-4xl font-bold">WellRead</span>
           </Link>
 
-          {/* Navigation Pills */}
-          <div className="flex gap-3">
-            <span className="px-4 py-2 rounded-full bg-card/50 text-sm font-medium text-muted-foreground">
-              Community
-            </span>
-            <span className="px-4 py-2 rounded-full bg-card/50 text-sm font-medium text-muted-foreground">
-              Lists
-            </span>
-            <span className="px-4 py-2 rounded-full bg-card/50 text-sm font-medium text-muted-foreground">
-              Journal
-            </span>
-          </div>
 
           {/* Hero Text */}
           <div className="space-y-6">
