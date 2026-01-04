@@ -1,5 +1,6 @@
 import { BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 
 const Header = () => {
   return (
@@ -25,11 +26,11 @@ const Header = () => {
         </nav>
 
         <div className="flex items-center gap-3">
-          <Button variant="ghost" className="hidden sm:flex text-muted-foreground hover:text-foreground">
-            Log In
+          <Button variant="ghost" className="hidden sm:flex text-muted-foreground hover:text-foreground" asChild>
+            <Link to="/auth">Log In</Link>
           </Button>
-          <Button className="shadow-lg shadow-primary/20">
-            Sign Up
+          <Button className="shadow-lg shadow-primary/20" asChild>
+            <Link to="/auth">Sign Up</Link>
           </Button>
         </div>
       </div>
