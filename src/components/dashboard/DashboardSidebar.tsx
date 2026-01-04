@@ -25,13 +25,10 @@ const DashboardSidebar = () => {
 
   return (
     <aside className="hidden lg:flex flex-col w-72 border-r border-surface-highlight bg-card min-h-screen">
-
-      {/* Quick Actions */}
-
       {/* User Profile */}
       <div className="p-4 border-b border-surface-highlight">
-        <div className="flex items-center gap-3">
-          <div className="size-12 rounded-full bg-gradient-to-br from-primary to-purple-500 flex items-center justify-center text-lg font-bold">
+        <div className="flex items-center gap-3 flex-col">
+          <div className="size-20 rounded-full bg-gradient-to-br from-primary to-purple-500 flex items-center justify-center text-2xl font-bold">
             F
           </div>
           <div className="flex-1 min-w-0">

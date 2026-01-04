@@ -12,10 +12,6 @@ const currentBook = {
   progress: 68,
 };
 
-const upNext = [
-  { title: "Dune", author: "Frank Herbert" },
-  { title: "Tomorrow, and Tomorrow", author: "Gabrielle Zevin" },
-];
 
 const CurrentlyReading = () => {
   return (
@@ -54,28 +50,6 @@ const CurrentlyReading = () => {
         </div>
       </div>
 
-      {/* Up Next */}
-      <div className="border-t border-surface-highlight pt-4">
-        <h4 className="text-sm font-medium text-muted-foreground mb-3">Up Next</h4>
-        <div className="space-y-3">
-          {upNext.map((book, index) => (
-            <div
-              key={index}
-              className="flex items-center justify-between p-3 rounded-lg bg-surface-highlight/50 hover:bg-surface-highlight transition-colors cursor-pointer"
-            >
-              <div className="min-w-0">
-                <p className="font-medium text-sm truncate">{book.title}</p>
-                <p className="text-xs text-muted-foreground truncate">{book.author}</p>
-              </div>
-              <GripVertical className="size-4 text-muted-foreground shrink-0" />
-            </div>
-          ))}
-        </div>
-        <Button variant="ghost" className="w-full mt-4 text-primary hover:text-primary/80">
-          View Reading List
-          <ArrowRight className="size-4 ml-2" />
-        </Button>
-      </div>
     </div>
   );
 };
