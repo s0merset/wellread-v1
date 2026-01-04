@@ -19,7 +19,7 @@ const upNext = [
 
 const CurrentlyReading = () => {
   return (
-    <div className="rounded-xl border border-surface-highlight bg-card p-6">
+    <div className="rounded-xl border border-surface-highlight bg-card p-6 ">
       <div className="flex items-center gap-2 mb-6">
         <h2 className="text-lg font-bold">Currently Reading</h2>
       </div>
