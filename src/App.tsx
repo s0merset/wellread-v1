@@ -9,9 +9,11 @@ import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
 import Profile from "./pages/Profile";
 import Search from "./pages/Search.tsx";
+import Lists from "./pages/Lists.tsx";
+import Tracker from "./pages/Tracker.tsx";
 
 const queryClient = new QueryClient();
-
+    
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
@@ -24,6 +26,9 @@ const App = () => (
           <Route path="/dashboard" element={<Dashboard />} />
 	  <Route path="/profile" element={<Profile />}/>  
 	  <Route path="/search" element={<Search />} />
+	  <Route path="/lists" element={< Lists/>}/>
+	
+	  <Route path="/tracker" element={<Tracker/>}/>
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

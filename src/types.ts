@@ -15,3 +15,23 @@ export interface Stat {
   label: string;
   color: 'blue' | 'yellow' | 'green' | 'purple';
 }
+
+export interface ReadingProgress {
+  id: string;
+  title: string;
+  author: string;
+  coverUrl: string;
+  currentPage: number;
+  totalPages: number;
+  color?: string; // For the progress bar color
+}
+
+export interface ReadingList {
+  id: string;
+  title: string;
+  bookCount: number;
+  updatedAt: string;
+  covers: string[];
+  isPublic: boolean;
+  tags: string[];
+}
