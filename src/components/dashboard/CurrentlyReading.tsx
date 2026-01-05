@@ -1,4 +1,4 @@
-import { Clock, GripVertical, ArrowRight } from "lucide-react";
+import { BookOpen, Clock, GripVertical, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 
@@ -12,46 +12,61 @@ const currentBook = {
   progress: 68,
 };
 
-
 const CurrentlyReading = () => {
   return (
-    <div className="rounded-xl border border-surface-highlight bg-card p-6 ">
-      <div className="flex items-center gap-2 mb-6">
-        <h2 className="text-lg font-bold">Currently Reading</h2>
+    <div className="relative rounded-xl h-full border border-surface-highlight bg-card p-8">
+      <BookOpen className="absolute right-8 top-8 size-56 text-white/5 rotate-12" />
+
+      {/* Header */}
+      <div className="flex items-center gap-3 mb-8">
+        <h2 className="text-xl font-bold">Currently Reading</h2>
       </div>
 
       {/* Main Book */}
-      <div className="flex gap-4 mb-6">
+      <div className="flex gap-6 mb-8">
         <div
-          className="w-24 aspect-[2/3] rounded-lg bg-cover bg-center shadow-lg shrink-0"
+          className="w-32 aspect-[2/3] rounded-xl bg-cover bg-center shadow-lg shrink-0"
           style={{ backgroundImage: `url("${currentBook.cover}")` }}
         />
-        <div className="flex-1 min-w-0">
-          <h3 className="font-bold text-lg truncate">{currentBook.title}</h3>
-          <p className="text-muted-foreground text-sm mb-3">by {currentBook.author}</p>
 
-          <div className="flex flex-wrap gap-3 text-xs text-muted-foreground mb-3">
-            <span className="flex items-center gap-1">
-              <Clock className="size-3" />
+        <div className="flex-1 min-w-0">
+          <h3 className="font-bold text-xl truncate">
+            {currentBook.title}
+          </h3>
+
+          <p className="text-muted-foreground text-base mb-4">
+            by {currentBook.author}
+          </p>
+
+          <div className="flex flex-wrap gap-4 text-sm text-muted-foreground mb-4">
+            <span className="flex items-center gap-2">
+              <Clock className="size-4" />
               {currentBook.timeLeft} left
             </span>
           </div>
 
-          <div className="space-y-2">
+          {/* Progress */}
+          <div className="space-y-3">
             <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">{currentBook.progress}% Complete</span>
+              <span className="text-muted-foreground">
+                {currentBook.progress}% Complete
+              </span>
             </div>
-            <Progress value={currentBook.progress} className="h-2" />
+
+            <Progress
+              value={currentBook.progress}
+              className="h-3"
+            />
           </div>
 
-          <Button size="sm" className="mt-4">
+          <Button size="default" className="mt-6">
             Update Progress
           </Button>
         </div>
       </div>
-
     </div>
   );
 };
 
 export default CurrentlyReading;
+

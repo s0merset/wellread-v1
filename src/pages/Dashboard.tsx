@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import UpNext from "@/components/dashboard/UpNext";
 
 const Dashboard = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -50,14 +51,17 @@ const Dashboard = () => {
                 Log Book
               </Button>
             </div>
-            {/* Content Grid */}
-            <div className="grid lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2 space-y-6">
-                <CurrentlyReading />
-                <FriendActivity />
-		<RecommendedBooks />
-              </div>
-            </div>
+			{/* Content Grid */}
+<div className="lg:col-span-5 space-y-6">
+  <div className="grid lg:grid-cols-3 gap-6">
+    <div className="lg:col-span-2">
+      <CurrentlyReading />
+    </div>
+    <UpNext />
+  </div> 
+  <FriendActivity />
+  <RecommendedBooks />
+</div>
           </div>
         </main>
       </div>
@@ -66,3 +70,4 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
+

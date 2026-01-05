@@ -205,7 +205,7 @@ const Auth = () => {
 
           {/* Terms */}
           <p className="text-center text-xs text-muted-foreground">
-            By continuing, you agree to Bookworm's{" "}
+            By continuing, you agree to  WellRead's{" "}
             <a href="#" className="text-primary hover:underline">Terms of Service</a> and{" "}
             <a href="#" className="text-primary hover:underline">Privacy Policy</a>.
           </p>

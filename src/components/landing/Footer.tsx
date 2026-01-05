@@ -26,8 +26,7 @@ const Footer = () => {
           {/* Branding */}
           <div className="col-span-2 lg:col-span-2">
             <div className="flex items-center gap-2 mb-4">
-              <BookOpen className="size-5 text-primary" />
-              <span className="text-lg font-bold">Bookworm</span>
+              <span className="text-lg font-bold">WellRead</span>
             </div>
             <p className="text-sm text-muted-foreground max-w-xs">
               The social network for book lovers. Track your reading, find your next favorite book, and connect with friends.
@@ -53,7 +52,7 @@ const Footer = () => {
 
         {/* Bottom bar */}
         <div className="mt-12 border-t border-surface-highlight pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-xs text-muted-foreground">© 2023 Bookworm Inc. All rights reserved.</p>
+          <p className="text-xs text-muted-foreground">© 2023 WellRead Inc. All rights reserved.</p>
           <div className="flex gap-6 text-muted-foreground">
             <a className="hover:text-foreground transition-colors" href="#">
               <span className="sr-only">Twitter</span>

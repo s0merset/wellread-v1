@@ -39,29 +39,33 @@ const RecommendedBooks = () => {
   const [scrollPosition, setScrollPosition] = useState(0);
 
   return (
-    <div className="rounded-xl border border-surface-highlight bg-card p-6">
-      <div className="flex items-center justify-between mb-6">
+    <div className="space-y-4">
+      {/* Header + Controls */}
+      <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="flex size-8 items-center justify-center rounded-lg bg-primary/20 text-primary">
-            <Sparkles className="size-4" />
-          </div>
           <h2 className="text-lg font-bold">Recommended for You</h2>
         </div>
+
         <div className="flex gap-2">
           <Button
             variant="outline"
             size="icon"
-            className="size-8 border-surface-highlight"
+            className="size-8 border-surface-highlight bg-background/80 backdrop-blur"
             onClick={() => setScrollPosition(Math.max(0, scrollPosition - 1))}
             disabled={scrollPosition === 0}
           >
             <ChevronLeft className="size-4" />
           </Button>
+
           <Button
             variant="outline"
             size="icon"
-            className="size-8 border-surface-highlight"
-            onClick={() => setScrollPosition(Math.min(recommendedBooks.length - 3, scrollPosition + 1))}
+            className="size-8 border-surface-highlight bg-background/80 backdrop-blur"
+            onClick={() =>
+              setScrollPosition(
+                Math.min(recommendedBooks.length - 3, scrollPosition + 1)
+              )
+            }
             disabled={scrollPosition >= recommendedBooks.length - 3}
           >
             <ChevronRight className="size-4" />
@@ -69,33 +73,28 @@ const RecommendedBooks = () => {
         </div>
       </div>
 
+      {/* Books */}
       <div className="overflow-hidden">
         <div
-          className="flex gap-4 transition-transform duration-300"
-          style={{ transform: `translateX(-${scrollPosition * 140}px)` }}
+          className="flex gap-6 transition-transform duration-300"
+          style={{ transform: `translateX(-${scrollPosition * 180}px)` }}
         >
           {recommendedBooks.map((book, index) => (
-            <div key={index} className="group relative shrink-0 w-32">
-              <div className="relative aspect-[2/3] rounded-lg overflow-hidden shadow-lg">
-                <div
-                  className="absolute inset-0 bg-cover bg-center"
-                  style={{ backgroundImage: `url("${book.cover}")` }}
-                />
-                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                  <button className="p-2 rounded-full bg-primary/80 hover:bg-primary transition-colors">
-                    <Plus className="size-4" />
-                  </button>
-                  <button className="p-2 rounded-full bg-card/80 hover:bg-card transition-colors">
-                    <Eye className="size-4" />
-                  </button>
+            <div key={index} className="shrink-0 w-40">
+              <div className="rounded-xl border border-surface-highlight bg-background p-3">
+                <div className="aspect-[2/3] rounded-lg overflow-hidden shadow-md mb-3">
+                  <div
+                    className="h-full w-full bg-cover bg-center"
+                    style={{ backgroundImage: `url("${book.cover}")` }}
+                  />
                 </div>
-                <div className="absolute top-2 right-2 px-2 py-1 rounded-full bg-primary/90 text-xs font-bold">
-                  {book.match}% Match
-                </div>
-              </div>
-              <div className="mt-2">
-                <p className="font-medium text-sm truncate">{book.title}</p>
-                <p className="text-xs text-muted-foreground truncate">{book.author}</p>
+
+                <p className="font-medium text-sm truncate">
+                  {book.title}
+                </p>
+                <p className="text-xs text-muted-foreground truncate">
+                  {book.author}
+                </p>
               </div>
             </div>
           ))}
@@ -106,3 +105,4 @@ const RecommendedBooks = () => {
 };
 
 export default RecommendedBooks;
+
