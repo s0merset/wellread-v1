@@ -1,8 +1,8 @@
 import DashboardSidebar from "@/components/dashboard/DashboardSidebar";
 import CurrentlyReading from "@/components/dashboard/CurrentlyReading";
 import FriendActivity from "@/components/dashboard/FriendActivity";
+import Header from "@/components/Header";
 import RecommendedBooks from "@/components/dashboard/RecommendedBooks";
-import NavBar from "@/components/dashboard/Navbar";
 import { Bell, Menu, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -16,7 +16,7 @@ const Dashboard = () => {
     <div className="flex flex-col min-h-screen">
       {/* Desktop Sidebar */}
       <div className="fixed top-0 left-0 right-0 z-10">
-        <NavBar />
+        <Header />
       </div>
       <div className="flex flex-1 w-full pt-16">
         <DashboardSidebar />

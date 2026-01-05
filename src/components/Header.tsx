@@ -15,7 +15,7 @@ const Header: React.FC<HeaderProps> = ({ activePage }) => {
           <div className="text-primary">
             <span className="material-symbols-outlined text-3xl">menu_book</span>
           </div>
-          <h2 className="text-lg font-bold leading-tight tracking-[-0.015em] hidden sm:block dark:text-white">Bookworm</h2>
+          <h2 className="text-lg font-bold leading-tight tracking-[-0.015em] hidden sm:block dark:text-white"> WellRead</h2>
         </div>
 
         <nav className="hidden md:flex flex-1 justify-center gap-8">
