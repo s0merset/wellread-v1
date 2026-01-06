@@ -16,8 +16,8 @@ const Sidebar: React.FC<SidebarProps> = ({ type }) => {
             <span className="material-symbols-outlined text-slate-500 dark:text-slate-400">person</span>
           </div>
           <div>
-            <div className="text-sm font-bold text-slate-900 dark:text-white">Alex Readman</div>
-            <div className="text-xs text-slate-500 dark:text-slate-400">@bookworm_alex</div>
+            <div className="text-sm font-bold text-slate-900 dark:text-white">Francis Rey</div>
+            <div className="text-xs text-slate-500 dark:text-slate-400">@fr_betonio</div>
           </div>
         </div>
       ) : (

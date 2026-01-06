@@ -1,13 +1,23 @@
 import React from 'react';
 import Sidebar from '@/components/Sidebar';
+import Header from '@/components/Header';
 
 const Tracker: React.FC = () => {
+  // Array of sample covers for the "Recently Finished" stack
+  const finishedCovers = [
+    "https://covers.openlibrary.org/b/id/12711818-L.jpg", // Tomorrow, and Tomorrow, and Tomorrow
+    "https://covers.openlibrary.org/b/id/11504996-L.jpg", // The Midnight Library
+    "https://covers.openlibrary.org/b/id/12885107-L.jpg", // Babel
+    "https://covers.openlibrary.org/b/id/12640243-L.jpg", // Dark Matter
+  ];
+
   return (
     <div className="bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-display min-h-screen flex flex-col transition-colors duration-200">
-      <Sidebar type="tracker"/>
+      <Header variant="app"/>
       <div className="flex-1 flex flex-col lg:flex-row max-w-[1600px] w-full mx-auto">
+        <Sidebar type="tracker"/>
         {/* Page Header (Internal to Content) */}
-        <div className="flex-1 min-w-0 p-6 lg:p-10">
+        <div className="flex-1 min-w-0 p-6 lg:p-10 ml-30">
           <header className="mb-8 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
             <div>
               <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white mb-2">My Dashboard</h1>
@@ -49,9 +59,9 @@ const Tracker: React.FC = () => {
               <div className="relative z-10">
                 <p className="text-xs text-slate-400 mb-3 font-bold uppercase tracking-wide">Recently Finished</p>
                 <div className="flex -space-x-3 hover:space-x-1 transition-all duration-300">
-                  {/* Map covers here */}
-                  {[1, 2, 3, 4].map((i) => (
-                    <img key={i} alt="cover" className="w-12 h-16 object-cover rounded shadow-lg border-2 border-slate-800 hover:scale-110 hover:z-20 transition-transform cursor-pointer" src={`https://via.placeholder.com/150x200`} />
+                  {/* Map actual book covers here */}
+                  {finishedCovers.map((src, i) => (
+                    <img key={i} alt="cover" className="w-12 h-16 object-cover rounded shadow-lg border-2 border-slate-800 hover:scale-110 hover:z-20 transition-transform cursor-pointer" src={src} />
                   ))}
                   <div className="w-12 h-16 rounded bg-slate-700 border-2 border-slate-800 flex items-center justify-center text-xs font-bold text-slate-400 hover:scale-110 transition-transform cursor-pointer">
                     +20
@@ -61,7 +71,7 @@ const Tracker: React.FC = () => {
             </div>
 
             {/* Quick Stats Grid */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4 ">
               <TrackerStat icon="auto_stories" value="8,432" label="Pages Read" color="blue" />
               <TrackerStat icon="star_half" value="4.2" label="Avg. Rating" color="yellow" />
               <TrackerStat icon="rate_review" value="18" label="Reviews" color="green" />
@@ -69,14 +79,18 @@ const Tracker: React.FC = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2 space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 ">
+            <div className="lg:col-span-2 space-y-6 ">
               <h3 className="text-lg font-bold flex items-center gap-2">
                 <span className="material-symbols-outlined text-primary">timelapse</span> Currently Reading
               </h3>
               {/* Main Currently Reading Card */}
-              <div className="bg-white dark:bg-surface-dark rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-6 flex flex-col sm:flex-row gap-6">
-                <img alt="Project Hail Mary" className="shrink-0 w-24 sm:w-32 aspect-[2/3] rounded-lg object-cover shadow-md" src="https://via.placeholder.com/150x200" />
+              <div className=" bg-gradient-to-br from-slate-900 to-slate-800 dark:from-surface-dark dark:to-background-dark dark:bg-surface-dark rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-6 flex flex-col sm:flex-row gap-6">
+                <img 
+                  alt="Project Hail Mary" 
+                  className="shrink-0 w-24 sm:w-32 aspect-[2/3] rounded-lg object-cover shadow-md border border-white/10" 
+                  src="https://covers.openlibrary.org/b/id/12560381-L.jpg" 
+                />
                 <div className="flex-1 flex flex-col justify-between">
                   <div>
                     <h4 className="text-xl font-bold">Project Hail Mary</h4>
@@ -94,11 +108,11 @@ const Tracker: React.FC = () => {
             </div>
 
             {/* Top Genres Progress bars */}
-            <div className="space-y-6">
+            <div className="space-y-6 ">
               <h3 className="text-lg font-bold flex items-center gap-2">
                 <span className="material-symbols-outlined text-pink-500">pie_chart</span> Top Genres
               </h3>
-              <div className="bg-white dark:bg-surface-dark rounded-2xl border border-slate-200 dark:border-slate-700 p-5 space-y-4">
+              <div className="bg-gradient-to-br from-slate-900 to-slate-800 dark:from-surface-dark dark:to-background-dark  dark:bg-surface-dark rounded-2xl border border-slate-200 dark:border-slate-700 p-5 space-y-4">
                 <GenreProgress label="Sci-Fi" percent={42} color="bg-blue-500" />
                 <GenreProgress label="Fantasy" percent={28} color="bg-purple-500" />
                 <GenreProgress label="Non-Fiction" percent={15} color="bg-orange-500" />
@@ -119,7 +133,7 @@ const TrackerStat = ({ icon, value, label, color }: { icon: string, value: strin
     purple: "bg-purple-100 dark:bg-purple-900/30 text-purple-600"
   };
   return (
-    <div className="bg-white dark:bg-surface-dark p-5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
+    <div className="bg-gradient-to-br from-slate-900 to-slate-800 dark:from-surface-dark dark:to-background-dark  dark:bg-surface-dark p-5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
       <div className={`h-10 w-10 rounded-lg ${colors[color]} flex items-center justify-center mb-3`}>
         <span className="material-symbols-outlined">{icon}</span>
       </div>

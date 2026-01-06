@@ -37,20 +37,15 @@ const Discover: React.FC = () => {
              ))}
           </FilterGroup>
 
-	  
           <FilterGroup title="Length">
-	    <div className="flex gap-2">
+            <div className="flex gap-2">
              {['Short', 'Medium', 'Long'].map(option => (
                <label key={option} className="flex items-center gap-2 p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800/50 cursor-pointer group transition-colors -mx-2">
-                 <input type="button" name="rating" className="h-1 w-1 border-slate-300 dark:border-slate-600 text-primary focus:ring-offset-0 bg-transparent" />
-                   <span className="flex-1 px-2 py-1 rounded-sm border border-white hover:bg-slate-100 dark:hover:bg-slate-800/50 text-slate-600 dark:text-slate-300 text-sm font-sm transition-colors cursor-pointer">{option}</span>
-
+                   <span className="flex-1 px-3 py-1.5 rounded border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800/50 text-slate-600 dark:text-slate-300 text-xs font-bold transition-colors cursor-pointer">{option}</span>
                </label>
              ))}
 	     </div>
           </FilterGroup>
-	
-	  
         </aside>
 
         {/* Main Content */}
@@ -74,41 +69,136 @@ const Discover: React.FC = () => {
           </section>
 
           {/* Trending Grid */}
-          <div className="p-6 lg:p-10 space-y-16">
+          <div className="p-6 lg:p-10">
             <section>
               <SectionHeader title="Trending This Week" subtitle="The most logged books on Bookworm right now." icon="trending_up" />
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6 gap-x-6 gap-y-10">
-                <BookCard title="The Midnight Library" author="Matt Haig" rating={4.8} />
-                <BookCard title="Project Hail Mary" author="Andy Weir" rating={4.5} />
-                {/* Add more BookCards as needed */}
+                <BookCard 
+                  title="The Midnight Library" 
+                  author="Matt Haig" 
+                  rating={4.8} 
+                  cover="https://covers.openlibrary.org/b/id/11504996-L.jpg"
+                />
+                <BookCard 
+                  title="Project Hail Mary" 
+                  author="Andy Weir" 
+                  rating={4.5} 
+                  cover="https://covers.openlibrary.org/b/id/12560381-L.jpg"
+                />
+                <BookCard 
+                  title="Tomorrow, and Tomorrow..." 
+                  author="Gabrielle Zevin" 
+                  rating={4.7} 
+                  cover="https://covers.openlibrary.org/b/id/12711818-L.jpg"
+                />
+                <BookCard 
+                  title="Dark Matter" 
+                  author="Blake Crouch" 
+                  rating={4.4} 
+                  cover="https://covers.openlibrary.org/b/id/12640243-L.jpg"
+                />
+                <BookCard 
+                  title="The Seven Husbands..." 
+                  author="Taylor Jenkins Reid" 
+                  rating={4.6} 
+                  cover="https://covers.openlibrary.org/b/id/12818862-L.jpg"
+                />
+                <BookCard 
+                  title="Babel" 
+                  author="R.F. Kuang" 
+                  rating={4.9} 
+                  cover="https://covers.openlibrary.org/b/id/12885107-L.jpg"
+                />
               </div>
             </section>
           </div>
 
-          
-
           {/* Recommendation */}
-          <div className="p-6 lg:p-10 space-y-16">
+          <div className="p-6 lg:p-10">
             <section>
               <SectionHeader title="Curated For You" subtitle="Community collections hand-picked for your taste." icon="auto_awesome" />
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6 gap-x-6 gap-y-10">
-                <BookCard title="White Nights" author="Fyodor Dostoevsky" rating={4.8} />
-                <BookCard title="The Metamorphosis" author="Franz Kafka" rating={4.5} />
-		<BookCard title="To Kill a Mockingbird" author="Harper Lee" rating={5.0} />
+                <BookCard 
+                  title="White Nights" 
+                  author="Fyodor Dostoevsky" 
+                  rating={4.8} 
+                  cover="https://covers.openlibrary.org/b/id/10405051-L.jpg"
+                />
+                <BookCard 
+                  title="The Metamorphosis" 
+                  author="Franz Kafka" 
+                  rating={4.5} 
+                  cover="https://covers.openlibrary.org/b/id/8231856-L.jpg"
+                />
+                <BookCard 
+                  title="To Kill a Mockingbird" 
+                  author="Harper Lee" 
+                  rating={5.0} 
+                  cover="https://covers.openlibrary.org/b/id/8231992-L.jpg"
+                />
+                <BookCard 
+                  title="1984" 
+                  author="George Orwell" 
+                  rating={4.8} 
+                  cover="https://covers.openlibrary.org/b/id/12647417-L.jpg"
+                />
+                <BookCard 
+                  title="The Stranger" 
+                  author="Albert Camus" 
+                  rating={4.3} 
+                  cover="https://covers.openlibrary.org/b/id/10541997-L.jpg"
+                />
+                <BookCard 
+                  title="Meditations" 
+                  author="Marcus Aurelius" 
+                  rating={4.9} 
+                  cover="https://covers.openlibrary.org/b/id/12817814-L.jpg"
+                />
               </div>
             </section>
           </div>
-	  
 
 	  {/* New Arrivals */}
-	  
-          <div className="p-6 lg:p-10 space-y-16">
+          <div className="p-6 lg:p-10">
             <section>
               <SectionHeader title="New Arrivals" subtitle="Hot off the press and available now." icon="check_circle" />
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6 gap-x-6 gap-y-10">
-                <BookCard title="Letters from a Stoic" author="Lucius Annaeus Seneca" rating={4.8} />
-                <BookCard title="The Great Gatsby" author="F. Scott Fitzgerald" rating={4.5} />
-		<BookCard title="Anna Karenina" author="Leo Tolstoy" rating={5.0} />
+                <BookCard 
+                  title="Letters from a Stoic" 
+                  author="Lucius Annaeus Seneca" 
+                  rating={4.8} 
+                  cover="https://covers.openlibrary.org/b/id/12560381-L.jpg" 
+                />
+                <BookCard 
+                  title="The Great Gatsby" 
+                  author="F. Scott Fitzgerald" 
+                  rating={4.5} 
+                  cover="https://covers.openlibrary.org/b/id/12885107-L.jpg"
+                />
+                <BookCard 
+                  title="Anna Karenina" 
+                  author="Leo Tolstoy" 
+                  rating={5.0} 
+                  cover="https://covers.openlibrary.org/b/id/10395333-L.jpg"
+                />
+                <BookCard 
+                  title="Circe" 
+                  author="Madeline Miller" 
+                  rating={4.7} 
+                  cover="https://covers.openlibrary.org/b/id/12853245-L.jpg"
+                />
+                <BookCard 
+                  title="Piranesi" 
+                  author="Susanna Clarke" 
+                  rating={4.8} 
+                  cover="https://covers.openlibrary.org/b/id/10313317-L.jpg"
+                />
+                <BookCard 
+                  title="The Alchemist" 
+                  author="Paulo Coelho" 
+                  rating={4.4} 
+                  cover="https://covers.openlibrary.org/b/id/12711818-L.jpg"
+                />
               </div>
             </section>
           </div>
@@ -141,13 +231,19 @@ const SectionHeader = ({ title, subtitle, icon }: { title: string; subtitle: str
   </div>
 );
 
-const BookCard = ({ title, author, rating }: { title: string; author: string; rating: number }) => (
+const BookCard = ({ title, author, rating, cover }: { title: string; author: string; rating: number; cover: string }) => (
   <div className="group relative flex flex-col gap-3">
-    <div className="relative aspect-[2/3] w-full overflow-hidden rounded-lg shadow-lg bg-surface-dark ring-1 ring-white/10 group-hover:shadow-glow group-hover:ring-primary/50 transition-all duration-300">
-      <img alt={title} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" src="https://via.placeholder.com/300x450" />
-      <div className="absolute top-2 right-2 bg-black/80 backdrop-blur-md px-1.5 py-0.5 rounded text-xs font-bold text-white flex items-center gap-1">
+    <div className="relative aspect-[2/3] w-full overflow-hidden rounded-lg shadow-lg bg-slate-100 dark:bg-surface-dark ring-1 ring-black/5 dark:ring-white/10 group-hover:shadow-glow group-hover:ring-primary/50 transition-all duration-300">
+      <img 
+        alt={title} 
+        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" 
+        src={cover} 
+        loading="lazy"
+      />
+      <div className="absolute top-2 right-2 bg-black/80 backdrop-blur-md px-1.5 py-0.5 rounded text-[10px] font-bold text-white flex items-center gap-1">
         <span className="material-symbols-outlined text-[12px] text-yellow-400 fill-[1]">star</span> {rating}
       </div>
+      
       {/* Hover Overlay */}
       <div className="absolute inset-0 bg-slate-900/80 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center gap-2 p-4 backdrop-blur-[2px]">
         <button className="w-full py-2 bg-primary rounded font-bold text-xs text-white hover:bg-primary-hover shadow-lg transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">Want to Read</button>
