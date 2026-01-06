@@ -8,7 +8,7 @@ const Profile: React.FC = () => {
   const tabs: Tab[] = ['Profile', 'Activity', 'Reviews', 'Lists', 'Stats'];
 
   return (
-    <div className="bg-[#0f172a] min-h-screen font-display text-white antialiased pb-20">
+    <div className="bg-background-light dark:bg-background-dark min-h-screen font-display text-white antialiased pb-20">
       <Header activePage="Profile" />
       
       <main className="max-w-[1400px] w-full mx-auto px-6 py-10 lg:py-12">
@@ -19,7 +19,7 @@ const Profile: React.FC = () => {
             <div className="flex flex-col items-center lg:items-start">
               {/* Profile Picture */}
               <div className="relative mb-6">
-                <div className="w-32 h-32 rounded-full p-[3px] bg-gradient-to-tr from-blue-500 to-purple-500 ring-4 ring-[#0f172a]">
+                <div className="w-32 h-32 rounded-full p-[3px] ">
                    <div className="w-full h-full rounded-full bg-[#1e293b] flex items-center justify-center overflow-hidden">
                       <img src="https://www.borbay.com//wp-content/uploads/2012/11/Morgan-Freeman-Source-8-by-8-500x500.jpg" alt="Alex" className="w-full h-full object-cover" />
                    </div>
