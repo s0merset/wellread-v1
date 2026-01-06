@@ -30,16 +30,6 @@ const Sidebar: React.FC<SidebarProps> = ({ type }) => {
             <SidebarLink to="/lists/archived" icon="archive" label="Archived" />
           </nav>
 	  
-          <div className="mb-8">
-            <h3 className="text-sm font-bold uppercase tracking-wider text-slate-500 mb-4">Tags</h3>
-            <div className="flex flex-wrap gap-2">
-              {['#favorites', '#2024', '#scifi', '#classics', '#fiction'].map(tag => (
-                <span key={tag} className="px-2.5 py-1 rounded bg-slate-200 dark:bg-slate-800 text-xs font-medium text-slate-600 dark:text-slate-300 cursor-pointer hover:bg-slate-300 dark:hover:bg-slate-700 transition-colors">
-                  {tag}
-                </span>
-              ))}
-            </div>
-          </div>
 
 
 	  
@@ -106,7 +96,7 @@ const Sidebar: React.FC<SidebarProps> = ({ type }) => {
           {['#favorites', '#2024', '#scifi', '#nonfiction'].map((tag) => (
             <span 
               key={tag} 
-              className="px-2 py-1 rounded-md bg-slate-100 dark:bg-slate-800 text-xs font-medium text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-primary hover:text-primary transition-colors"
+              className="px-2 py-1 rounded-md bg-slate-100 hover:dark:bg-slate-800 hover:bg-slate-300 text-xs font-medium text-slate-600  border border-slate-200 dark:border-slate-700 cursor-pointer "
             >
               {tag}
             </span>

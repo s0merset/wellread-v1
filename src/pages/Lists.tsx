@@ -4,13 +4,16 @@ import Sidebar from '@/components/Sidebar';
 
 const Lists: React.FC = () => {
   return (
-    <div className="bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-display min-h-screen flex flex-col transition-colors duration-200">
+    <div className="flex flex-col h-screen bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-display min-h-screen flex flex-col transition-colors duration-200">
       <Header variant="app"/>
-      <Sidebar type="lists" />      
        <main className="flex-1 flex flex-col lg:flex-row max-w-[1600px] w-full mx-auto">
 
-        {/* List Content */}
-        <div className="flex-1 flex flex-col min-w-0">
+	<aside className="hidden md:flex w-72 border-r border-slate-200 dark:border-slate-800 overflow-y-auto">
+         <Sidebar type="lists" />      
+        </aside>
+        
+	{/* List Content */}
+        <div className="flex-1 flex flex-col min-w-0 ml-30">
           <div className="sticky top-0 z-40 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur border-b border-slate-200 dark:border-slate-800 px-6 lg:px-10 py-6">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
               <div>
@@ -35,7 +38,11 @@ const Lists: React.FC = () => {
               {/* List Card Component */}
               <ListCard title="Summer Reads 2024" count={12} isPublic={true} tag="#2024" />
               <ListCard title="Sci-Fi Essentials" count={48} isPublic={false} tag="#scifi" />
-              
+              <ListCard title="Fiction" count={50} isPublic={false} tag="#fiction" /> 
+              <ListCard title="Time Killers" count={50} isPublic={false} tag="#fiction" /> 
+              <ListCard title="Non-Fiction" count={50} isPublic={false} tag="#fiction" /> 
+              <ListCard title="Ponder" count={50} isPublic={false} tag="#fiction" /> 
+              <ListCard title="Dystopian" count={50} isPublic={false} tag="#fiction" /> 
               {/* Create New List Placeholder */}
               <div className="group relative bg-white dark:bg-surface-dark rounded-xl p-5 border border-slate-200 dark:border-slate-700 hover:border-primary/50 transition-all shadow-sm flex flex-col h-full hover:shadow-md cursor-pointer border-dashed">
                 <div className="flex flex-col items-center justify-center h-full text-center py-10">
