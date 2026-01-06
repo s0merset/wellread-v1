@@ -15,7 +15,10 @@ const Tracker: React.FC = () => {
     <div className="bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-display min-h-screen flex flex-col transition-colors duration-200">
       <Header variant="app"/>
       <div className="flex-1 flex flex-col lg:flex-row max-w-[1600px] w-full mx-auto">
-        <Sidebar type="tracker"/>
+	
+        <aside className="hidden md:flex w-70 border-r border-slate-200 dark:border-slate-800 ">
+          <Sidebar type="lists" />
+        </aside>
         {/* Page Header (Internal to Content) */}
         <div className="flex-1 min-w-0 p-6 lg:p-10 ml-30">
           <header className="mb-8 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
