@@ -36,6 +36,21 @@ const Discover: React.FC = () => {
                </label>
              ))}
           </FilterGroup>
+
+	  
+          <FilterGroup title="Length">
+	    <div className="flex gap-2">
+             {['Short', 'Medium', 'Long'].map(option => (
+               <label key={option} className="flex items-center gap-2 p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800/50 cursor-pointer group transition-colors -mx-2">
+                 <input type="button" name="rating" className="h-1 w-1 border-slate-300 dark:border-slate-600 text-primary focus:ring-offset-0 bg-transparent" />
+                   <span className="flex-1 px-2 py-1 rounded-sm border border-white hover:bg-slate-100 dark:hover:bg-slate-800/50 text-slate-600 dark:text-slate-300 text-sm font-sm transition-colors cursor-pointer">{option}</span>
+
+               </label>
+             ))}
+	     </div>
+          </FilterGroup>
+	
+	  
         </aside>
 
         {/* Main Content */}
@@ -69,6 +84,35 @@ const Discover: React.FC = () => {
               </div>
             </section>
           </div>
+
+          
+
+          {/* Recommendation */}
+          <div className="p-6 lg:p-10 space-y-16">
+            <section>
+              <SectionHeader title="Curated For You" subtitle="Community collections hand-picked for your taste." icon="auto_awesome" />
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6 gap-x-6 gap-y-10">
+                <BookCard title="White Nights" author="Fyodor Dostoevsky" rating={4.8} />
+                <BookCard title="The Metamorphosis" author="Franz Kafka" rating={4.5} />
+		<BookCard title="To Kill a Mockingbird" author="Harper Lee" rating={5.0} />
+              </div>
+            </section>
+          </div>
+	  
+
+	  {/* New Arrivals */}
+	  
+          <div className="p-6 lg:p-10 space-y-16">
+            <section>
+              <SectionHeader title="New Arrivals" subtitle="Hot off the press and available now." icon="check_circle" />
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6 gap-x-6 gap-y-10">
+                <BookCard title="Letters from a Stoic" author="Lucius Annaeus Seneca" rating={4.8} />
+                <BookCard title="The Great Gatsby" author="F. Scott Fitzgerald" rating={4.5} />
+		<BookCard title="Anna Karenina" author="Leo Tolstoy" rating={5.0} />
+              </div>
+            </section>
+          </div>
+	  
         </div>
       </main>
     </div>

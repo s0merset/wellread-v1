@@ -1,37 +1,13 @@
 import React from 'react';
+import Header from '@/components/Header';
 import Sidebar from '@/components/Sidebar';
 
 const Lists: React.FC = () => {
   return (
     <div className="bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-display min-h-screen flex flex-col transition-colors duration-200">
-      <Sidebar type="lists" />
+      <Header variant="app"/>
+      <Sidebar type="lists" />      
        <main className="flex-1 flex flex-col lg:flex-row max-w-[1600px] w-full mx-auto">
-        {/* Lists Filter Sidebar */}
-        <aside className="hidden lg:block w-72 shrink-0 border-r border-slate-200 dark:border-slate-800 p-6 h-[calc(100vh-64px)] sticky top-[64px] overflow-y-auto custom-scrollbar">
-          <div className="mb-8">
-            <h3 className="text-sm font-bold uppercase tracking-wider text-slate-500 mb-4">Library</h3>
-            <nav className="space-y-1">
-              <a href="#" className="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/10 text-primary font-bold text-sm">
-                <span className="material-symbols-outlined text-[20px]">format_list_bulleted</span> All Lists
-                <span className="ml-auto text-xs opacity-70">12</span>
-              </a>
-              <a href="#" className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-sm font-medium">
-                <span className="material-symbols-outlined text-[20px]">favorite</span> Liked Lists
-              </a>
-            </nav>
-          </div>
-          
-          <div className="mb-8">
-            <h3 className="text-sm font-bold uppercase tracking-wider text-slate-500 mb-4">Tags</h3>
-            <div className="flex flex-wrap gap-2">
-              {['#favorites', '#2024', '#scifi', '#classics'].map(tag => (
-                <span key={tag} className="px-2.5 py-1 rounded bg-slate-200 dark:bg-slate-800 text-xs font-medium text-slate-600 dark:text-slate-300 cursor-pointer hover:bg-slate-300 dark:hover:bg-slate-700 transition-colors">
-                  {tag}
-                </span>
-              ))}
-            </div>
-          </div>
-        </aside>
 
         {/* List Content */}
         <div className="flex-1 flex flex-col min-w-0">

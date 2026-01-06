@@ -16,7 +16,7 @@ const Dashboard = () => {
     <div className="flex flex-col min-h-screen">
       {/* Desktop Sidebar */}
       <div className="fixed top-0 left-0 right-0 z-10">
-        <Header />
+        <Header variant="app"/>
       </div>
       <div className="flex flex-1 w-full pt-16">
         <DashboardSidebar />
