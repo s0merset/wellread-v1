@@ -1,6 +1,11 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import Header from '../components/Header.tsx';
 import { searchBooks, GoogleBook } from '@/lib/googleBooks';
+import { supabase } from '@/lib/supabase'; // 1. Added Supabase import
+import { toast } from "sonner";
+
+// 2. Corrected Import to match your component usage
+import AddBookToListModal from '@/components/lists/AddToList.tsx';
 
 const Discover: React.FC = () => {
   // --- STATE ---
@@ -12,8 +17,46 @@ const Discover: React.FC = () => {
   const [isSearching, setIsSearching] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // --- INITIAL DATA LOAD (Kafka, Dostoevsky, etc.) ---
+  // --- NEW STATES FOR LIST LOGIC ---
+  const [lists, setLists] = useState<any[]>([]); // To store user's collections
+  const [selectedBook, setSelectedBook] = useState<any>(null);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [activeList, setActiveList] = useState<{id: string, title: string} | null>(null);
+
+  // --- 3. FETCH LISTS FUNCTION ---
+  // This is passed to the modal to refresh data if needed
+  const fetchLists = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { data, error } = await supabase
+      .from('lists')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error("Error fetching lists:", error.message);
+    } else {
+      setLists(data || []);
+    }
+  };
+
+  // --- MODAL HANDLER ---
+  const handleOpenAddModal = (book: any) => {
+    setSelectedBook({
+      title: book.title,
+      author: book.author,
+      cover_url: book.cover_url,
+      total_pages: book.total_pages || 200
+    });
+    setIsAddModalOpen(true);
+  };
+
+  // --- INITIAL DATA LOAD ---
   useEffect(() => {
+    fetchLists(); // Fetch lists on mount
+
     const fetchInitialData = async () => {
       setLoading(true);
       try {
@@ -37,15 +80,12 @@ const Discover: React.FC = () => {
 
   // --- REAL-TIME FUZZY SEARCH LOGIC ---
   useEffect(() => {
-    // 1. If query is empty, reset search state immediately
     if (!query.trim()) {
       setIsSearching(false);
       setSearchResults([]);
       return;
     }
 
-    // 2. Set up a debounce timer (500ms)
-    // This prevents calling the API on every single keystroke
     const delayDebounceFn = setTimeout(async () => {
       setLoading(true);
       setIsSearching(true);
@@ -59,21 +99,29 @@ const Discover: React.FC = () => {
       }
     }, 500);
 
-    // 3. Cleanup: Clear the timeout if the user types again before 500ms
     return () => clearTimeout(delayDebounceFn);
   }, [query]);
 
-  // Keep the form submit handler just to prevent page reload on 'Enter'
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
   };
 
   return (
     <div className="bg-background-light dark:bg-background-dark text-slate-900 dark:text-text-main font-display min-h-screen flex flex-col transition-colors duration-200 antialiased">
-      <Header />
+      <Header variant="app" />
       
+      {/* 4. Modal component logic integrated with all required props */}
+      <AddBookToListModal 
+        isOpen={isAddModalOpen} 
+        onClose={() => setIsAddModalOpen(false)} 
+        onSuccess={fetchLists}
+        listId={activeList?.id || null} // This will be null on initial open, modal will handle choice
+        listTitle={activeList?.title || null}
+        book={selectedBook} 
+      />
+
       <main className="flex-1 flex flex-col lg:flex-row max-w-[1600px] w-full mx-auto">
-        {/* Filter Sidebar - UNCHANGED */}
+        {/* Filter Sidebar - REMAINS UNCHANGED */}
         <aside className="hidden lg:flex flex-col w-72 shrink-0 border-r border-slate-200 dark:border-slate-800 px-6 py-8 h-[calc(100vh-64px)] sticky top-[64px] overflow-y-auto custom-scrollbar bg-background-light dark:bg-background-dark/50">
           <div className="flex items-center justify-between mb-8">
             <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Filter Books</h3>
@@ -102,21 +150,9 @@ const Discover: React.FC = () => {
                </label>
              ))}
           </FilterGroup>
-
-          <FilterGroup title="Length">
-            <div className="flex gap-2">
-             {['Short', 'Medium', 'Long'].map(option => (
-               <label key={option} className="flex items-center gap-2 p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800/50 cursor-pointer group transition-colors -mx-2">
-                   <span className="flex-1 px-3 py-1.5 rounded border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800/50 text-slate-600 dark:text-slate-300 text-xs font-bold transition-colors cursor-pointer">{option}</span>
-               </label>
-             ))}
-	     </div>
-          </FilterGroup>
         </aside>
 
-        {/* Main Content */}
         <div className="flex-1 flex flex-col min-w-0">
-          {/* Search Hero */}
           <section className="relative pt-12 pb-8 px-6 lg:px-12 border-b border-slate-200 dark:border-slate-800">
             <div className="absolute top-0 inset-x-0 h-64 bg-gradient-to-b from-primary/5 to-transparent pointer-events-none"></div>
             <div className="relative z-10 max-w-4xl mx-auto text-center">
@@ -136,7 +172,7 @@ const Discover: React.FC = () => {
                     onChange={(e) => setQuery(e.target.value)}
                     className="peer w-full outline-none h-full bg-transparent border-none focus:ring-0 text-slate-900 dark:text-white placeholder:text-slate-400 text-base font-medium" 
                     placeholder="Search titles, authors, ISBNs..."
-		    style={{ color: 'inherit' }}
+                    style={{ color: 'inherit' }}
                   />
                   {isSearching && (
                     <button 
@@ -152,9 +188,7 @@ const Discover: React.FC = () => {
             </div>
           </section>
 
-          {/* Dynamic Grid Sections */}
           <div className="p-6 lg:p-10 space-y-16">
-            
             {isSearching ? (
               <section>
                 <SectionHeader title="Search Results" subtitle={loading ? "Searching..." : `Found matches for "${query}"`} icon="manage_search" />
@@ -165,39 +199,58 @@ const Discover: React.FC = () => {
                       title={book.title} 
                       author={book.author} 
                       rating={4.5} 
-                      cover={book.cover_url} 
+                      cover={book.cover_url}
+                      onAddClick={() => handleOpenAddModal(book)} 
                     />
                   ))}
                 </div>
               </section>
             ) : (
               <>
-                {/* Trending Grid */}
                 <section>
                   <SectionHeader title="Trending This Week" subtitle="The most logged classics right now." icon="trending_up" />
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6 gap-x-6 gap-y-10">
                     {trending.map(book => (
-                      <BookCard key={book.id} title={book.title} author={book.author} rating={4.9} cover={book.cover_url} />
+                      <BookCard 
+                        key={book.id} 
+                        title={book.title} 
+                        author={book.author} 
+                        rating={4.9} 
+                        cover={book.cover_url} 
+                        onAddClick={() => handleOpenAddModal(book)}
+                      />
                     ))}
                   </div>
                 </section>
 
-                {/* Curated Section */}
                 <section>
                   <SectionHeader title="Curated For You" subtitle="Philosophical fiction hand-picked for your taste." icon="auto_awesome" />
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6 gap-x-6 gap-y-10">
                     {curated.map(book => (
-                      <BookCard key={book.id} title={book.title} author={book.author} rating={4.7} cover={book.cover_url} />
+                      <BookCard 
+                        key={book.id} 
+                        title={book.title} 
+                        author={book.author} 
+                        rating={4.7} 
+                        cover={book.cover_url} 
+                        onAddClick={() => handleOpenAddModal(book)}
+                      />
                     ))}
                   </div>
                 </section>
 
-                {/* New Arrivals Section */}
                 <section>
                   <SectionHeader title="New Arrivals" subtitle="Hot off the press and available now." icon="check_circle" />
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6 gap-x-6 gap-y-10">
                     {arrivals.map(book => (
-                      <BookCard key={book.id} title={book.title} author={book.author} rating={4.4} cover={book.cover_url} />
+                      <BookCard 
+                        key={book.id} 
+                        title={book.title} 
+                        author={book.author} 
+                        rating={4.4} 
+                        cover={book.cover_url} 
+                        onAddClick={() => handleOpenAddModal(book)}
+                      />
                     ))}
                   </div>
                 </section>
@@ -233,7 +286,7 @@ const SectionHeader = ({ title, subtitle, icon }: { title: string; subtitle: str
   </div>
 );
 
-const BookCard = ({ title, author, rating, cover }: { title: string; author: string; rating: number; cover: string }) => (
+const BookCard = ({ title, author, rating, cover, onAddClick }: { title: string; author: string; rating: number; cover: string, onAddClick: () => void }) => (
   <div className="group relative flex flex-col gap-3">
     <div className="relative aspect-[2/3] w-full overflow-hidden rounded-lg shadow-lg bg-slate-100 dark:bg-surface-dark ring-1 ring-black/5 dark:ring-white/10 group-hover:shadow-glow group-hover:ring-primary/50 transition-all duration-300">
       <img 
@@ -247,8 +300,15 @@ const BookCard = ({ title, author, rating, cover }: { title: string; author: str
       </div>
       
       <div className="absolute inset-0 bg-slate-900/80 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center gap-2 p-4 backdrop-blur-[2px]">
-        <button className="w-full py-2 bg-primary rounded font-bold text-xs text-white hover:bg-primary-hover shadow-lg transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">Want to Read</button>
-        <button className="w-full py-2 bg-white/10 backdrop-blur border border-white/20 rounded font-bold text-xs text-white hover:bg-white/20 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300 delay-75">Log/Review</button>
+        <button 
+          onClick={(e) => { e.preventDefault(); onAddClick(); }} 
+          className="w-full py-2 bg-primary rounded font-bold text-xs text-white hover:bg-primary-hover shadow-lg transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300"
+        >
+          Want to Read
+        </button>
+        <button className="w-full py-2 bg-white/10 backdrop-blur border border-white/20 rounded font-bold text-xs text-white hover:bg-white/20 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300 delay-75">
+          Log/Review
+        </button>
       </div>
     </div>
     <div className="space-y-1">
