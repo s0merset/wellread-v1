@@ -1,13 +1,79 @@
-import React from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Header from '../components/Header.tsx';
+import { searchBooks, GoogleBook } from '@/lib/googleBooks';
 
 const Discover: React.FC = () => {
+  // --- STATE ---
+  const [query, setQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<GoogleBook[]>([]);
+  const [trending, setTrending] = useState<GoogleBook[]>([]);
+  const [curated, setCurated] = useState<GoogleBook[]>([]);
+  const [arrivals, setArrivals] = useState<GoogleBook[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  // --- INITIAL DATA LOAD (Kafka, Dostoevsky, etc.) ---
+  useEffect(() => {
+    const fetchInitialData = async () => {
+      setLoading(true);
+      try {
+        const [trendData, curatedData, arrivalsData] = await Promise.all([
+          searchBooks("inauthor:Dostoevsky+OR+inauthor:Kafka+OR+inauthor:Camus+OR+inauthor:Tolstoy"),
+          searchBooks("subject:philosophy+fiction"),
+          searchBooks("subject:fiction&orderBy=newest")
+        ]);
+        
+        setTrending(trendData.slice(0, 6));
+        setCurated(curatedData.slice(0, 6));
+        setArrivals(arrivalsData.slice(0, 6));
+      } catch (error) {
+        console.error("Error loading books:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchInitialData();
+  }, []);
+
+  // --- REAL-TIME FUZZY SEARCH LOGIC ---
+  useEffect(() => {
+    // 1. If query is empty, reset search state immediately
+    if (!query.trim()) {
+      setIsSearching(false);
+      setSearchResults([]);
+      return;
+    }
+
+    // 2. Set up a debounce timer (500ms)
+    // This prevents calling the API on every single keystroke
+    const delayDebounceFn = setTimeout(async () => {
+      setLoading(true);
+      setIsSearching(true);
+      try {
+        const results = await searchBooks(query);
+        setSearchResults(results);
+      } catch (error) {
+        console.error("Search failed:", error);
+      } finally {
+        setLoading(false);
+      }
+    }, 500);
+
+    // 3. Cleanup: Clear the timeout if the user types again before 500ms
+    return () => clearTimeout(delayDebounceFn);
+  }, [query]);
+
+  // Keep the form submit handler just to prevent page reload on 'Enter'
+  const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+  };
+
   return (
     <div className="bg-background-light dark:bg-background-dark text-slate-900 dark:text-text-main font-display min-h-screen flex flex-col transition-colors duration-200 antialiased">
       <Header />
       
       <main className="flex-1 flex flex-col lg:flex-row max-w-[1600px] w-full mx-auto">
-        {/* Filter Sidebar */}
+        {/* Filter Sidebar - UNCHANGED */}
         <aside className="hidden lg:flex flex-col w-72 shrink-0 border-r border-slate-200 dark:border-slate-800 px-6 py-8 h-[calc(100vh-64px)] sticky top-[64px] overflow-y-auto custom-scrollbar bg-background-light dark:bg-background-dark/50">
           <div className="flex items-center justify-between mb-8">
             <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Filter Books</h3>
@@ -58,157 +124,93 @@ const Discover: React.FC = () => {
                 What are you <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-purple-500">reading next?</span>
               </h1>
               
-              <div className="relative group max-w-2xl mx-auto mb-6">
+              <form onSubmit={handleFormSubmit} className="relative group max-w-2xl mx-auto mb-6">
                 <div className="absolute inset-0 bg-primary/30 rounded-2xl blur-xl group-hover:bg-primary/40 transition-all opacity-0 group-hover:opacity-100 duration-500"></div>
                 <label className="relative flex items-center w-full h-14 rounded-2xl bg-white dark:bg-surface-dark shadow-xl shadow-slate-200/50 dark:shadow-black/20 border border-slate-200 dark:border-slate-700/50 overflow-hidden focus-within:ring-2 focus-within:ring-primary/50 transition-all">
-                  <div className="pl-5 pr-3 text-slate-400"><span className="material-symbols-outlined">search</span></div>
-                  <input className="peer w-full h-full bg-transparent border-none focus:ring-0 text-slate-900 dark:text-white placeholder:text-slate-400 text-base font-medium" placeholder="Search titles, authors, ISBNs..." />
+                  <div className="pl-5 pr-3 text-slate-400">
+                    <span className="material-symbols-outlined">{loading ? 'sync' : 'search'}</span>
+                  </div>
+                  <input 
+                    type="text"
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    className="peer w-full outline-none h-full bg-transparent border-none focus:ring-0 text-slate-900 dark:text-white placeholder:text-slate-400 text-base font-medium" 
+                    placeholder="Search titles, authors, ISBNs..."
+		    style={{ color: 'inherit' }}
+                  />
+                  {isSearching && (
+                    <button 
+                      type="button" 
+                      onClick={() => { setQuery(""); }}
+                      className="pr-5 text-slate-400 hover:text-primary transition-colors"
+                    >
+                      <span className="material-symbols-outlined">close</span>
+                    </button>
+                  )}
                 </label>
-              </div>
+              </form>
             </div>
           </section>
 
-          {/* Trending Grid */}
-          <div className="p-6 lg:p-10">
-            <section>
-              <SectionHeader title="Trending This Week" subtitle="The most logged books on Bookworm right now." icon="trending_up" />
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6 gap-x-6 gap-y-10">
-                <BookCard 
-                  title="The Midnight Library" 
-                  author="Matt Haig" 
-                  rating={4.8} 
-                  cover="https://covers.openlibrary.org/b/id/11504996-L.jpg"
-                />
-                <BookCard 
-                  title="Project Hail Mary" 
-                  author="Andy Weir" 
-                  rating={4.5} 
-                  cover="https://covers.openlibrary.org/b/id/12560381-L.jpg"
-                />
-                <BookCard 
-                  title="Tomorrow, and Tomorrow..." 
-                  author="Gabrielle Zevin" 
-                  rating={4.7} 
-                  cover="https://covers.openlibrary.org/b/id/12711818-L.jpg"
-                />
-                <BookCard 
-                  title="Dark Matter" 
-                  author="Blake Crouch" 
-                  rating={4.4} 
-                  cover="https://covers.openlibrary.org/b/id/12640243-L.jpg"
-                />
-                <BookCard 
-                  title="The Seven Husbands..." 
-                  author="Taylor Jenkins Reid" 
-                  rating={4.6} 
-                  cover="https://covers.openlibrary.org/b/id/12818862-L.jpg"
-                />
-                <BookCard 
-                  title="Babel" 
-                  author="R.F. Kuang" 
-                  rating={4.9} 
-                  cover="https://covers.openlibrary.org/b/id/12885107-L.jpg"
-                />
-              </div>
-            </section>
-          </div>
+          {/* Dynamic Grid Sections */}
+          <div className="p-6 lg:p-10 space-y-16">
+            
+            {isSearching ? (
+              <section>
+                <SectionHeader title="Search Results" subtitle={loading ? "Searching..." : `Found matches for "${query}"`} icon="manage_search" />
+                <div className={`grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6 gap-x-6 gap-y-10 transition-opacity ${loading ? 'opacity-50' : 'opacity-100'}`}>
+                  {searchResults.map((book) => (
+                    <BookCard 
+                      key={book.id} 
+                      title={book.title} 
+                      author={book.author} 
+                      rating={4.5} 
+                      cover={book.cover_url} 
+                    />
+                  ))}
+                </div>
+              </section>
+            ) : (
+              <>
+                {/* Trending Grid */}
+                <section>
+                  <SectionHeader title="Trending This Week" subtitle="The most logged classics right now." icon="trending_up" />
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6 gap-x-6 gap-y-10">
+                    {trending.map(book => (
+                      <BookCard key={book.id} title={book.title} author={book.author} rating={4.9} cover={book.cover_url} />
+                    ))}
+                  </div>
+                </section>
 
-          {/* Recommendation */}
-          <div className="p-6 lg:p-10">
-            <section>
-              <SectionHeader title="Curated For You" subtitle="Community collections hand-picked for your taste." icon="auto_awesome" />
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6 gap-x-6 gap-y-10">
-                <BookCard 
-                  title="White Nights" 
-                  author="Fyodor Dostoevsky" 
-                  rating={4.8} 
-                  cover="https://covers.openlibrary.org/b/id/10405051-L.jpg"
-                />
-                <BookCard 
-                  title="The Metamorphosis" 
-                  author="Franz Kafka" 
-                  rating={4.5} 
-                  cover="https://covers.openlibrary.org/b/id/8231856-L.jpg"
-                />
-                <BookCard 
-                  title="To Kill a Mockingbird" 
-                  author="Harper Lee" 
-                  rating={5.0} 
-                  cover="https://covers.openlibrary.org/b/id/8231992-L.jpg"
-                />
-                <BookCard 
-                  title="1984" 
-                  author="George Orwell" 
-                  rating={4.8} 
-                  cover="https://covers.openlibrary.org/b/id/12647417-L.jpg"
-                />
-                <BookCard 
-                  title="The Stranger" 
-                  author="Albert Camus" 
-                  rating={4.3} 
-                  cover="https://covers.openlibrary.org/b/id/10541997-L.jpg"
-                />
-                <BookCard 
-                  title="Meditations" 
-                  author="Marcus Aurelius" 
-                  rating={4.9} 
-                  cover="https://covers.openlibrary.org/b/id/12817814-L.jpg"
-                />
-              </div>
-            </section>
-          </div>
+                {/* Curated Section */}
+                <section>
+                  <SectionHeader title="Curated For You" subtitle="Philosophical fiction hand-picked for your taste." icon="auto_awesome" />
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6 gap-x-6 gap-y-10">
+                    {curated.map(book => (
+                      <BookCard key={book.id} title={book.title} author={book.author} rating={4.7} cover={book.cover_url} />
+                    ))}
+                  </div>
+                </section>
 
-	  {/* New Arrivals */}
-          <div className="p-6 lg:p-10">
-            <section>
-              <SectionHeader title="New Arrivals" subtitle="Hot off the press and available now." icon="check_circle" />
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6 gap-x-6 gap-y-10">
-                <BookCard 
-                  title="Letters from a Stoic" 
-                  author="Lucius Annaeus Seneca" 
-                  rating={4.8} 
-                  cover="https://covers.openlibrary.org/b/id/12560381-L.jpg" 
-                />
-                <BookCard 
-                  title="The Great Gatsby" 
-                  author="F. Scott Fitzgerald" 
-                  rating={4.5} 
-                  cover="https://covers.openlibrary.org/b/id/12885107-L.jpg"
-                />
-                <BookCard 
-                  title="Anna Karenina" 
-                  author="Leo Tolstoy" 
-                  rating={5.0} 
-                  cover="https://covers.openlibrary.org/b/id/10395333-L.jpg"
-                />
-                <BookCard 
-                  title="Circe" 
-                  author="Madeline Miller" 
-                  rating={4.7} 
-                  cover="https://covers.openlibrary.org/b/id/12853245-L.jpg"
-                />
-                <BookCard 
-                  title="Piranesi" 
-                  author="Susanna Clarke" 
-                  rating={4.8} 
-                  cover="https://covers.openlibrary.org/b/id/10313317-L.jpg"
-                />
-                <BookCard 
-                  title="The Alchemist" 
-                  author="Paulo Coelho" 
-                  rating={4.4} 
-                  cover="https://covers.openlibrary.org/b/id/12711818-L.jpg"
-                />
-              </div>
-            </section>
+                {/* New Arrivals Section */}
+                <section>
+                  <SectionHeader title="New Arrivals" subtitle="Hot off the press and available now." icon="check_circle" />
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6 gap-x-6 gap-y-10">
+                    {arrivals.map(book => (
+                      <BookCard key={book.id} title={book.title} author={book.author} rating={4.4} cover={book.cover_url} />
+                    ))}
+                  </div>
+                </section>
+              </>
+            )}
           </div>
-	  
         </div>
       </main>
     </div>
   );
 };
 
+// --- STATIC SUB-COMPONENTS (UNCHANGED) ---
 const FilterGroup = ({ title, children }: { title: string; children: React.ReactNode }) => (
   <div className="mb-10">
     <h4 className="text-sm font-bold mb-4 text-slate-900 dark:text-white">{title}</h4>
@@ -225,9 +227,9 @@ const SectionHeader = ({ title, subtitle, icon }: { title: string; subtitle: str
       </h3>
       <p className="text-sm text-slate-500 mt-1">{subtitle}</p>
     </div>
-    <a href="#" className="text-xs font-bold text-primary hover:text-primary-hover flex items-center gap-1 uppercase tracking-wider">
+    <button className="text-xs font-bold text-primary hover:text-primary-hover flex items-center gap-1 uppercase tracking-wider">
       View All <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
-    </a>
+    </button>
   </div>
 );
 
@@ -237,14 +239,13 @@ const BookCard = ({ title, author, rating, cover }: { title: string; author: str
       <img 
         alt={title} 
         className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" 
-        src={cover} 
+        src={cover || "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?q=80&w=500"} 
         loading="lazy"
       />
       <div className="absolute top-2 right-2 bg-black/80 backdrop-blur-md px-1.5 py-0.5 rounded text-[10px] font-bold text-white flex items-center gap-1">
         <span className="material-symbols-outlined text-[12px] text-yellow-400 fill-[1]">star</span> {rating}
       </div>
       
-      {/* Hover Overlay */}
       <div className="absolute inset-0 bg-slate-900/80 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center gap-2 p-4 backdrop-blur-[2px]">
         <button className="w-full py-2 bg-primary rounded font-bold text-xs text-white hover:bg-primary-hover shadow-lg transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">Want to Read</button>
         <button className="w-full py-2 bg-white/10 backdrop-blur border border-white/20 rounded font-bold text-xs text-white hover:bg-white/20 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300 delay-75">Log/Review</button>

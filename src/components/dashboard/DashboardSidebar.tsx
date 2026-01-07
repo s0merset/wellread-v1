@@ -1,59 +1,116 @@
+import React, { useState, useEffect } from "react";
+import { supabase } from "@/lib/supabase";
 import { Progress } from "@/components/ui/progress";
 
+// Define a type for the profile data based on your schema
+interface Profile {
+  full_name: string;
+  username: string;
+  avatar_url: string;
+  reading_level: string;
+}
+
 const DashboardSidebar = () => {
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const getProfile = async () => {
+      // Get the current authenticated user
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (user) {
+        // Fetch profile data from your 'profiles' table
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single();
+
+        if (data) setProfile(data);
+        if (error) console.error("Error fetching profile:", error.message);
+      }
+      setLoading(false);
+    };
+
+    getProfile();
+  }, []);
+
+  // Show a "Medium" style loading skeleton instead of a blank string
+  if (loading) {
+    return (
+      <aside className="hidden lg:flex flex-col w-64 border-r border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900/50 min-h-screen p-6 space-y-8">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="size-20 rounded-full bg-slate-200 dark:bg-slate-800 animate-pulse" />
+          <div className="h-4 w-32 bg-slate-200 dark:bg-slate-800 animate-pulse rounded" />
+        </div>
+      </aside>
+    );
+  }
+
   return (
-    <aside className="hidden lg:flex flex-col w-72 border-r border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900/50 min-h-screen transition-all duration-300">
+    <aside className="hidden lg:flex flex-col w-64 border-r border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900/50 min-h-screen transition-all duration-300">
       
       {/* User Profile Section */}
       <div className="group/profile relative overflow-hidden p-6 border-b border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-all">
         
         {/* Profile Watermark */}
-        <span className="material-symbols-outlined absolute right-[-10px] top-[-10px] text-[100px] text-primary/5 rotate-[-15deg] pointer-events-none transition-transform duration-700 group-hover/profile:rotate-0 group-hover/profile:scale-110">
+        <span className="material-symbols-outlined absolute right-[-5px] top-[-5px] text-[90px] text-primary/5 rotate-[-15deg] pointer-events-none transition-transform duration-700 group-hover/profile:rotate-0 group-hover/profile:scale-110">
           account_circle
         </span>
 
         <div className="relative z-10 flex flex-col items-center text-center">
-          {/* Avatar with Glow */}
-          <div className="relative mb-4">
-            <div className="size-24 rounded-full bg-gradient-to-br from-primary to-purple-500 flex items-center justify-center text-3xl font-black text-white shadow-xl shadow-primary/20 transition-transform duration-500 group-hover/profile:scale-105">
-              F
+          {/* Dynamic Avatar */}
+          <div className="relative mb-3">
+            <div className="size-20 rounded-full overflow-hidden border-4 border-white dark:border-slate-900 shadow-lg shadow-primary/10 transition-transform duration-500 group-hover/profile:scale-105">
+              {profile?.avatar_url ? (
+                <img src={profile.avatar_url} alt="Profile" className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full bg-gradient-to-br from-primary to-purple-500 flex items-center justify-center text-2xl font-black text-white">
+                  {profile?.full_name?.[0] || 'U'}
+                </div>
+              )}
             </div>
-            <div className="absolute bottom-1 right-1 size-6 bg-green-500 border-4 border-white dark:border-slate-900 rounded-full"></div>
+            <div className="absolute bottom-0.5 right-0.5 size-5 bg-green-500 border-[3px] border-white dark:border-slate-900 rounded-full shadow-sm"></div>
           </div>
           
-          <h3 className="font-bold text-lg truncate w-full">Francis Rey Betonio</h3>
-          <p className="text-xs text-muted-foreground font-medium uppercase tracking-widest mt-1">Lvl 24 Bibliophile</p>
+          {/* Dynamic Profile Info */}
+          <h3 className="font-bold text-base truncate w-full">
+            {profile?.full_name || "New Reader"}
+          </h3>
+          <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest mt-0.5">
+            {profile?.reading_level || "Novice Reader"}
+          </p>
         </div>
 
         {/* Stats Grid */}
-        <div className="relative z-10 grid grid-cols-3 gap-2 mt-8">
-          <div className="flex flex-col items-center p-2 rounded-xl hover:bg-white dark:hover:bg-slate-800 transition-colors">
-            <span className="material-symbols-outlined text-primary text-[20px] mb-1">book_4</span>
-            <p className="text-sm font-bold">42</p>
-            <p className="text-[10px] text-muted-foreground uppercase">Read</p>
+        <div className="relative z-10 grid grid-cols-3 gap-1 mt-6">
+          <div className="flex flex-col items-center p-1.5 rounded-xl hover:bg-white dark:hover:bg-slate-800 transition-colors">
+            <span className="material-symbols-outlined text-primary text-[18px] mb-0.5">book_4</span>
+            <p className="text-xs font-black">42</p>
+            <p className="text-[8px] text-muted-foreground font-bold uppercase tracking-tighter">Read</p>
           </div>
-          <div className="flex flex-col items-center p-2 rounded-xl hover:bg-white dark:hover:bg-slate-800 transition-colors">
-            <span className="material-symbols-outlined text-primary text-[20px] mb-1">person_add</span>
-            <p className="text-sm font-bold">128</p>
-            <p className="text-[10px] text-muted-foreground uppercase">Following</p>
+          <div className="flex flex-col items-center p-1.5 rounded-xl hover:bg-white dark:hover:bg-slate-800 transition-colors">
+            <span className="material-symbols-outlined text-primary text-[18px] mb-0.5">person_add</span>
+            <p className="text-xs font-black">128</p>
+            <p className="text-[8px] text-muted-foreground font-bold uppercase tracking-tighter">Following</p>
           </div>
-          <div className="flex flex-col items-center p-2 rounded-xl hover:bg-white dark:hover:bg-slate-800 transition-colors">
-            <span className="material-symbols-outlined text-primary text-[20px] mb-1">groups</span>
-            <p className="text-sm font-bold">96</p>
-            <p className="text-[10px] text-muted-foreground uppercase">Followers</p>
+          <div className="flex flex-col items-center p-1.5 rounded-xl hover:bg-white dark:hover:bg-slate-800 transition-colors">
+            <span className="material-symbols-outlined text-primary text-[18px] mb-0.5">groups</span>
+            <p className="text-xs font-black">96</p>
+            <p className="text-[8px] text-muted-foreground font-bold uppercase tracking-tighter">Followers</p>
           </div>
         </div>
       </div>
 
-
-      {/* Sidebar Footer/Nav could go here */}
+      {/* Navigation Footer */}
       <div className="mt-auto p-4 border-t border-slate-200 dark:border-slate-700">
-         <button className="flex items-center justify-between w-full p-3 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-all text-muted-foreground hover:text-primary group/nav">
-            <div className="flex items-center gap-3 font-semibold text-sm">
-                <span className="material-symbols-outlined transition-transform group-hover/nav:rotate-12">settings</span>
-                Settings
+         <button className="flex items-center justify-between w-full p-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-all text-muted-foreground hover:text-primary group/nav">
+            <div className="flex items-center gap-2.5 font-bold text-xs">
+                <span className="material-symbols-outlined text-[20px] transition-transform group-hover/nav:rotate-12">settings</span>
+                SETTINGS
             </div>
-            <span className="material-symbols-outlined text-[18px] opacity-0 group-hover/nav:opacity-100 transition-all -translate-x-2 group-hover/nav:translate-x-0">chevron_right</span>
+            <span className="material-symbols-outlined text-[16px] opacity-0 group-hover/nav:opacity-100 transition-all -translate-x-1 group-hover/nav:translate-x-0">chevron_right</span>
          </button>
       </div>
 
