@@ -1,96 +1,62 @@
-import { Link, useLocation } from "react-router-dom";
-import {
-  LayoutDashboard,
-  Book,
-  Heart,
-  PenLine,
-  Users,
-  Settings
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { cn } from "@/lib/utils";
-
-const navItems = [
-  { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
-  { icon: Book, label: "My Books", href: "/dashboard/books" },
-  { icon: Heart, label: "Favorites", href: "/dashboard/favorites" },
-  { icon: PenLine, label: "Reviews", href: "/dashboard/reviews" },
-  { icon: Users, label: "Friends", href: "/dashboard/friends" },
-  { icon: Settings, label: "Settings", href: "/dashboard/settings" },
-];
 
 const DashboardSidebar = () => {
-  const location = useLocation();
-
   return (
-    <aside className="hidden lg:flex flex-col w-72 border-r border-surface-highlight bg-card min-h-screen">
-      {/* User Profile */}
-      <div className="p-4 border-b border-surface-highlight">
-        <div className="flex items-center gap-3 flex-col">
-          <div className="size-20 rounded-full bg-gradient-to-br from-primary to-purple-500 flex items-center justify-center text-2xl font-bold">
-            F
+    <aside className="hidden lg:flex flex-col w-72 border-r border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900/50 min-h-screen transition-all duration-300">
+      
+      {/* User Profile Section */}
+      <div className="group/profile relative overflow-hidden p-6 border-b border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-all">
+        
+        {/* Profile Watermark */}
+        <span className="material-symbols-outlined absolute right-[-10px] top-[-10px] text-[100px] text-primary/5 rotate-[-15deg] pointer-events-none transition-transform duration-700 group-hover/profile:rotate-0 group-hover/profile:scale-110">
+          account_circle
+        </span>
+
+        <div className="relative z-10 flex flex-col items-center text-center">
+          {/* Avatar with Glow */}
+          <div className="relative mb-4">
+            <div className="size-24 rounded-full bg-gradient-to-br from-primary to-purple-500 flex items-center justify-center text-3xl font-black text-white shadow-xl shadow-primary/20 transition-transform duration-500 group-hover/profile:scale-105">
+              F
+            </div>
+            <div className="absolute bottom-1 right-1 size-6 bg-green-500 border-4 border-white dark:border-slate-900 rounded-full"></div>
           </div>
-          <div className="flex-1 min-w-0">
-            <h3 className="font-bold truncate">Francis Rey Betonio</h3>
-          </div>
+          
+          <h3 className="font-bold text-lg truncate w-full">Francis Rey Betonio</h3>
+          <p className="text-xs text-muted-foreground font-medium uppercase tracking-widest mt-1">Lvl 24 Bibliophile</p>
         </div>
 
-        <div className="flex justify-between mt-4 text-center">
-          <div>
-            <p className="text-lg font-bold">42</p>
-            <p className="text-xs text-muted-foreground">Read</p>
+        {/* Stats Grid */}
+        <div className="relative z-10 grid grid-cols-3 gap-2 mt-8">
+          <div className="flex flex-col items-center p-2 rounded-xl hover:bg-white dark:hover:bg-slate-800 transition-colors">
+            <span className="material-symbols-outlined text-primary text-[20px] mb-1">book_4</span>
+            <p className="text-sm font-bold">42</p>
+            <p className="text-[10px] text-muted-foreground uppercase">Read</p>
           </div>
-          <div>
-            <p className="text-lg font-bold">128</p>
-            <p className="text-xs text-muted-foreground">Following</p>
+          <div className="flex flex-col items-center p-2 rounded-xl hover:bg-white dark:hover:bg-slate-800 transition-colors">
+            <span className="material-symbols-outlined text-primary text-[20px] mb-1">person_add</span>
+            <p className="text-sm font-bold">128</p>
+            <p className="text-[10px] text-muted-foreground uppercase">Following</p>
           </div>
-          <div>
-            <p className="text-lg font-bold">96</p>
-            <p className="text-xs text-muted-foreground">Followers</p>
+          <div className="flex flex-col items-center p-2 rounded-xl hover:bg-white dark:hover:bg-slate-800 transition-colors">
+            <span className="material-symbols-outlined text-primary text-[20px] mb-1">groups</span>
+            <p className="text-sm font-bold">96</p>
+            <p className="text-[10px] text-muted-foreground uppercase">Followers</p>
           </div>
         </div>
       </div>
 
-      {/* Reading Challenge */}
-      <div className="p-4 border-b border-surface-highlight">
-        <div className="rounded-xl bg-gradient-to-br from-primary/20 to-purple-500/20 p-4">
-          <h4 className="font-bold text-sm mb-2">Reading Challenge</h4>
-          <div className="flex items-baseline gap-1 mb-2">
-            <span className="text-2xl font-black">24</span>
-            <span className="text-muted-foreground text-sm">of 50 books</span>
-          </div>
-          <Progress value={48} className="h-2 mb-2" />
-          <p className="text-xs text-muted-foreground">
-            You're 2 books ahead of schedule!
-          </p>
-        </div>
+
+      {/* Sidebar Footer/Nav could go here */}
+      <div className="mt-auto p-4 border-t border-slate-200 dark:border-slate-700">
+         <button className="flex items-center justify-between w-full p-3 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-all text-muted-foreground hover:text-primary group/nav">
+            <div className="flex items-center gap-3 font-semibold text-sm">
+                <span className="material-symbols-outlined transition-transform group-hover/nav:rotate-12">settings</span>
+                Settings
+            </div>
+            <span className="material-symbols-outlined text-[18px] opacity-0 group-hover/nav:opacity-100 transition-all -translate-x-2 group-hover/nav:translate-x-0">chevron_right</span>
+         </button>
       </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 p-4">
-        <ul className="space-y-1">
-          {navItems.map((item) => {
-            const isActive = location.pathname === item.href;
-            return (
-              <li key={item.label}>
-                <Link
-                  to={item.href}
-                  className={cn(
-                    "flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors",
-                    isActive
-                      ? "bg-primary/20 text-primary"
-                      : "text-muted-foreground hover:bg-surface-highlight hover:text-foreground"
-                  )}
-                >
-                  <item.icon className="size-5" />
-                  {item.label}
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
-      </nav>
     </aside>
   );
 };
