@@ -2,9 +2,13 @@ import React, { useState, useEffect } from 'react';
 import Header from '@/components/Header';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
+
+// --- Component Imports ---
+// Adjust paths if your file names are slightly different (e.g. .tsx vs index.tsx)
 import EditProfileModal from '@/components/profile/EditProfile';
 import AddFavoriteModal from '@/components/profile/AddFavoriteBook';
 import AddReviewModal from '@/components/review/AddReview';
+import FindUsersModal from '@/components/profile/FindUsers';
 
 // --- Types ---
 type Tab = 'Profile' | 'Activity' | 'Reviews' | 'Lists' | 'Stats';
@@ -22,7 +26,7 @@ interface UserBook {
   rating: number;
   review_text: string;
   current_page: number;
-  is_favorite: boolean; // NEW FIELD
+  is_favorite: boolean;
   books: { 
     id: string;
     title: string; 
@@ -44,15 +48,24 @@ interface ListWithCovers {
 const Profile: React.FC = () => {
   const [activeTab, setActiveTab] = useState<Tab>('Profile');
   const [loading, setLoading] = useState(true);
-  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
 
-  // Modal States
+  // --- Modal States ---
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [isFavModalOpen, setIsFavModalOpen] = useState(false); // NEW STATE
+  const [isFavModalOpen, setIsFavModalOpen] = useState(false);
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+  const [isFindFriendsOpen, setIsFindFriendsOpen] = useState(false);
 
-  // Data States
+  // --- Data States ---
   const [profile, setProfile] = useState<ProfileData>({ username: '', full_name: '', avatar_url: '', bio: '' });
-  const [stats, setStats] = useState({ booksRead: 0, yearCount: 0, reviews: 0, lists: 0, pagesRead: 0 });
+  const [stats, setStats] = useState({ 
+    booksRead: 0, 
+    yearCount: 0, 
+    reviews: 0, 
+    lists: 0, 
+    pagesRead: 0,
+    followers: 0,
+    following: 0
+  });
   const [currentRead, setCurrentRead] = useState<UserBook | null>(null);
   const [allBooks, setAllBooks] = useState<UserBook[]>([]);
   const [lists, setLists] = useState<ListWithCovers[]>([]);
@@ -99,22 +112,38 @@ const Profile: React.FC = () => {
         .select(`id, name, list_items ( books ( cover_url ) )`)
         .eq('user_id', user.id);
 
+      let formattedLists: ListWithCovers[] = [];
       if (listsData) {
-        const formattedLists = listsData.map((l: any) => ({
+        formattedLists = listsData.map((l: any) => ({
           id: l.id,
           name: l.name,
           count: l.list_items.length,
           covers: l.list_items.map((i: any) => i.books?.cover_url).filter(Boolean).slice(0, 3)
         }));
         setLists(formattedLists);
-        setStats({
-          booksRead: finished.length,
-          yearCount: thisYear.length,
-          reviews: fetchedBooks.filter(b => b.review_text).length,
-          lists: listsData.length,
-          pagesRead: totalPages
-        });
       }
+
+      // 4. Fetch Social Stats
+      const { count: followersCount } = await supabase
+        .from('follows')
+        .select('*', { count: 'exact', head: true })
+        .eq('following_id', user.id);
+
+      const { count: followingCount } = await supabase
+        .from('follows')
+        .select('*', { count: 'exact', head: true })
+        .eq('follower_id', user.id);
+
+      setStats({
+        booksRead: finished.length,
+        yearCount: thisYear.length,
+        reviews: fetchedBooks.filter(b => b.review_text).length,
+        lists: formattedLists.length,
+        pagesRead: totalPages,
+        followers: followersCount || 0,
+        following: followingCount || 0
+      });
+
     } catch (error) {
       console.error(error);
       toast.error("Error syncing profile");
@@ -127,9 +156,9 @@ const Profile: React.FC = () => {
     fetchProfileData();
   }, []);
 
-  // --- NEW: Handle Remove Favorite ---
+  // --- Actions ---
   const handleRemoveFavorite = async (id: string, e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent card click
+    e.stopPropagation();
     try {
       const { error } = await supabase
         .from('user_books')
@@ -138,7 +167,7 @@ const Profile: React.FC = () => {
 
       if (error) throw error;
       toast.success("Removed from favorites");
-      fetchProfileData(); // Refresh
+      fetchProfileData();
     } catch (error) {
       toast.error("Failed to remove");
     }
@@ -154,6 +183,7 @@ const Profile: React.FC = () => {
     <div className="bg-background-light dark:bg-background-dark min-h-screen font-display text-slate-900 dark:text-white antialiased pb-20 transition-colors">
       <Header activePage="Profile" />
       
+      {/* --- MODALS --- */}
       <EditProfileModal 
         isOpen={isEditModalOpen} 
         onClose={() => setIsEditModalOpen(false)}
@@ -170,19 +200,23 @@ const Profile: React.FC = () => {
       <AddReviewModal 
          isOpen={isReviewModalOpen}
          onClose={() => setIsReviewModalOpen(false)}
-         onSuccess={() => {
-           // Refresh profile data to show the new review in the "Reviews" tab
-           fetchProfileData(); 
-         }}
+         onSuccess={fetchProfileData}
        />
+
+      <FindUsersModal 
+        isOpen={isFindFriendsOpen}
+        onClose={() => setIsFindFriendsOpen(false)}
+        onSuccess={fetchProfileData}
+      />
+
       <main className="max-w-[1400px] w-full mx-auto px-6 py-10 lg:py-12">
         <div className="flex flex-col lg:flex-row gap-12">
           
           {/* SIDEBAR */}
           <aside className="w-full lg:w-[320px] shrink-0">
-            {/* ... Sidebar code matches previous response (omitted for brevity) ... */}
             <div className="flex flex-col items-center lg:items-start lg:sticky lg:top-10">
               
+              {/* Profile Avatar */}
               <div className="relative mb-6">
                 <div className="w-32 h-32 rounded-full p-[3px] ring-2 ring-slate-200 dark:ring-slate-800">
                    <div className="w-full h-full rounded-full bg-slate-100 dark:bg-[#1e293b] flex items-center justify-center overflow-hidden">
@@ -204,6 +238,7 @@ const Profile: React.FC = () => {
               <h1 className="text-3xl font-extrabold mb-1 text-center lg:text-left">{profile.full_name}</h1>
               <p className="text-slate-500 dark:text-slate-400 font-medium mb-4 text-center lg:text-left">@{profile.username}</p>
               
+              {/* Badges */}
               <div className="flex gap-2 mb-6">
                 <span className="text-[10px] font-black bg-blue-500/10 text-blue-500 border border-blue-500/20 px-2 py-1 rounded uppercase tracking-tighter">Member</span>
                 <span className="text-[10px] font-black bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-2 py-1 rounded uppercase tracking-tighter">Reader</span>
@@ -213,25 +248,44 @@ const Profile: React.FC = () => {
                 {profile.bio}
               </p>
 
-              <button onClick={() => setIsEditModalOpen(true)} className="w-full py-2.5 rounded-xl bg-white dark:bg-[#1e293b] border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-sm font-bold transition-all mb-10 shadow-sm">
-                Edit Profile
-              </button>
-
-
-	      <button 
-               onClick={() => setIsReviewModalOpen(true)}
-               className="px-4 rounded-xl bg-slate-200 dark:bg-slate-800 hover:bg-yellow-400 hover:text-slate-900 transition-colors text-slate-600 dark:text-slate-300"
-               title="Write a Review"
-             >
-               <span className="material-symbols-outlined">rate_review</span>
-             </button>
-              <div className="w-full grid grid-cols-2 gap-px bg-slate-200 dark:bg-slate-800 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden mb-10">
+              {/* Sidebar Stats */}
+              <div className="w-full grid grid-cols-3 gap-px bg-slate-200 dark:bg-slate-800 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden mb-8">
                 <StatBox value={stats.booksRead} label="Books" />
-                <StatBox value={stats.yearCount} label="This Year" />
                 <StatBox value={stats.reviews} label="Reviews" />
                 <StatBox value={stats.lists} label="Lists" />
+                {/* Social Stats */}
+                <StatBox value={stats.followers} label="Followers" />
+                <StatBox value={stats.following} label="Following" />
+                <StatBox value={stats.yearCount} label="Yearly" />
               </div>
 
+              {/* --- ACTION BUTTONS (Aligned Row) --- */}
+              <div className="flex items-center gap-2 w-full mb-10">
+                <button 
+                  onClick={() => setIsEditModalOpen(true)}
+                  className="flex-1 h-10 px-4 rounded-xl bg-white dark:bg-[#1e293b] border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-sm font-bold text-slate-700 dark:text-slate-200 transition-all shadow-sm flex items-center justify-center"
+                >
+                  Edit Profile
+                </button>
+                
+                <button 
+                  onClick={() => setIsReviewModalOpen(true)}
+                  className="w-10 h-10 shrink-0 rounded-xl bg-slate-100 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-yellow-400 hover:text-slate-900 hover:border-yellow-400 transition-all flex items-center justify-center group relative"
+                  title="Write a Review"
+                >
+                  <span className="material-symbols-outlined text-[20px]">rate_review</span>
+                </button>
+
+                <button 
+                  onClick={() => setIsFindFriendsOpen(true)}
+                  className="w-10 h-10 shrink-0 rounded-xl bg-blue-500 hover:bg-blue-600 text-white border border-transparent transition-all shadow-md shadow-blue-500/20 flex items-center justify-center group relative"
+                  title="Find Friends"
+                >
+                  <span className="material-symbols-outlined text-[20px]">person_add</span>
+                </button>
+              </div>
+
+              {/* Currently Reading */}
               <div className="w-full">
                  <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2">
                    <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> Currently Reading
@@ -263,6 +317,7 @@ const Profile: React.FC = () => {
 
           {/* MAIN CONTENT AREA */}
           <div className="flex-1 min-w-0">
+            {/* Tabs */}
             <div className="border-b border-slate-200 dark:border-slate-800 flex gap-8 mb-10 overflow-x-auto no-scrollbar">
               {(['Profile', 'Activity', 'Reviews', 'Lists', 'Stats'] as Tab[]).map((tab) => (
                 <button key={tab} onClick={() => setActiveTab(tab)} className={`pb-4 text-sm font-bold transition-all relative whitespace-nowrap ${activeTab === tab ? 'text-slate-900 dark:text-white' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}>
@@ -272,6 +327,7 @@ const Profile: React.FC = () => {
               ))}
             </div>
 
+            {/* Content Renderer */}
             <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
               {activeTab === 'Profile' && (
                 <ProfileTab 
@@ -293,7 +349,10 @@ const Profile: React.FC = () => {
   );
 };
 
-// --- Updated Profile Tab with Add/Remove Logic ---
+// ----------------------------------------------------------------------
+// --- TAB COMPONENTS ---
+// ----------------------------------------------------------------------
+
 const ProfileTab = ({ 
   books, 
   lists, 
@@ -305,7 +364,6 @@ const ProfileTab = ({
   onAddFavorite: () => void,
   onRemoveFavorite: (id: string, e: React.MouseEvent) => void
 }) => {
-  // Filter by is_favorite = true
   const favorites = books.filter(b => b.is_favorite);
   const recentReviews = books.filter(b => b.review_text).slice(0, 2);
 
@@ -319,7 +377,6 @@ const ProfileTab = ({
           </div>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-5">
-          {/* Favorite Cards */}
           {favorites.map((book) => (
             <div key={book.id} className="aspect-[2/3] rounded-xl overflow-hidden shadow-lg ring-1 ring-black/5 dark:ring-white/5 hover:scale-[1.05] transition-transform duration-300 cursor-pointer relative group">
               <img src={book.books.cover_url} alt={book.books.title} className="w-full h-full object-cover" />
@@ -327,19 +384,15 @@ const ProfileTab = ({
                   <div className="flex items-center text-yellow-400 font-bold gap-1 mb-2">
                     <span>{book.rating || '-'}</span><span className="material-symbols-outlined text-sm">star</span>
                   </div>
-                  {/* Remove Button */}
                   <button 
                     onClick={(e) => onRemoveFavorite(book.id, e)}
                     className="p-2 bg-white/10 hover:bg-white/20 rounded-full text-white backdrop-blur-sm transition-colors"
-                    title="Remove from favorites"
                   >
                     <span className="material-symbols-outlined text-lg">close</span>
                   </button>
               </div>
             </div>
           ))}
-          
-          {/* Add Button - Hidden if 5 or more favorites to keep layout clean, or always show */}
           {favorites.length < 5 && (
             <div 
               onClick={onAddFavorite}
@@ -354,7 +407,6 @@ const ProfileTab = ({
         </div>
       </section>
 
-      {/* Reviews & Lists Preview (Same as before) */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-12">
         <div className="xl:col-span-2 space-y-6">
           <h3 className="text-xl font-bold mb-4">Recent Reviews</h3>
@@ -387,25 +439,20 @@ const ProfileTab = ({
   );
 };
 
-// --- Other Tab Components (ActivityTab, ReviewsTab, ListsTab, StatsTab, etc.) remain identical to previous response ---
 const ActivityTab = ({ books }: { books: UserBook[] }) => {
   return (
     <div className="space-y-8 relative pl-8 border-l border-slate-200 dark:border-slate-800 ml-4 max-w-2xl">
       {books.length === 0 && <div className="text-slate-500">No activity yet.</div>}
-      
       {books.map((book) => {
-        let type = 'updated';
         let icon = 'update';
         let color = 'bg-slate-500';
         let text = 'Updated progress on';
 
         if (book.status === 'finished') {
-          type = 'finished';
           icon = 'check';
           color = 'bg-green-500';
           text = 'Finished reading';
         } else if (book.status === 'reading' && book.current_page === 0) {
-          type = 'started';
           icon = 'play_arrow';
           color = 'bg-blue-500';
           text = 'Started reading';
@@ -439,7 +486,6 @@ const ActivityTab = ({ books }: { books: UserBook[] }) => {
 
 const ReviewsTab = ({ books }: { books: UserBook[] }) => {
   const reviews = books.filter(b => b.review_text);
-  
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       {reviews.length === 0 && <div className="col-span-2 text-center text-slate-500 py-10">No reviews written yet.</div>}
@@ -453,12 +499,7 @@ const ListsTab = ({ lists }: { lists: ListWithCovers[] }) => {
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
       {lists.length === 0 && <div className="col-span-3 text-center text-slate-500 py-10">No lists created yet.</div>}
       {lists.map(list => (
-        <FannedListCard 
-          key={list.id} 
-          title={list.name} 
-          count={list.count} 
-          covers={list.covers} 
-        />
+        <FannedListCard key={list.id} title={list.name} count={list.count} covers={list.covers} />
       ))}
     </div>
   );
