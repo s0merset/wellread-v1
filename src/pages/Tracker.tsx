@@ -17,7 +17,7 @@ const Tracker: React.FC = () => {
       <div className="flex-1 flex flex-col lg:flex-row max-w-[1600px] w-full mx-auto">
 	
         <aside className="hidden md:flex w-70 border-r border-slate-200 dark:border-slate-800 ">
-          <Sidebar type="lists" />
+          <Sidebar type="tracker" />
         </aside>
         {/* Page Header (Internal to Content) */}
         <div className="flex-1 min-w-0 p-6 lg:p-10 ml-30">
