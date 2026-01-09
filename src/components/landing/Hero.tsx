@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom"; // 1. Import the hook
 
 const userAvatars = [
   "https://lh3.googleusercontent.com/aida-public/AB6AXuCfu2NqPEnEY775obA6-gSYtVTJAPCMYUvp6a1Cs1Vuvk70iar04nB83nuyfFy0pUL67QCaKKxJC_euzAUpLniljjI5Vul4bABgOmFBBCOS1e6hRwpo9yA5_hO83ksP7CIJ87CkTqUCRcr2Mj6j9xAmUaLQ2RCN1wJGOW3pcgM63AQQszZZqiwNL_4SXFvO9ZUAYLx71ZwvZMjWoVGUUtRyEfa4yaQuuZagJlRkpCe6UNCk1-8xNGwY9qlurRMUIm9CPHOFnGmutw",
@@ -23,6 +24,8 @@ const bookCovers = [
 ];
 
 const Hero = () => {
+  const navigate = useNavigate(); // 2. Initialize the navigate function
+
   return (
     <section className="relative overflow-hidden py-16 sm:py-24 lg:py-32">
       {/* Abstract background glow */}
@@ -42,10 +45,17 @@ const Hero = () => {
               Track what you read, discover your next favorite, and see what friends are saying. The ultimate social platform for book lovers.
             </p>
             <div className="mt-4 flex flex-wrap gap-4">
-              <Button size="lg" className="h-12 min-w-[140px] shadow-lg shadow-primary/25 hover:-translate-y-0.5 transition-all">
+              {/* 3. Add onClick navigation to /auth */}
+              <Button 
+                onClick={() => navigate("/auth")}
+                size="lg" 
+                className="h-12 min-w-[140px] shadow-lg shadow-primary/25 hover:-translate-y-0.5 transition-all"
+              >
                 Create Account
               </Button>
+              {/* 4. Add onClick navigation to /auth */}
               <Button
+                onClick={() => navigate("/auth")}
                 size="lg"
                 variant="outline"
                 className="h-12 min-w-[140px] border-surface-highlight bg-surface/50 backdrop-blur-sm hover:bg-surface-highlight hover:-translate-y-0.5 transition-all"
