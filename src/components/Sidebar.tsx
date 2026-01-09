@@ -3,9 +3,28 @@ import { NavLink } from 'react-router-dom';
 
 interface SidebarProps {
   type: 'tracker' | 'lists';
+  // Props for "Lists" functionality
+  counts?: { all: number; liked: number; saved: number };
+  activeFilter?: string;
+  onFilterChange?: (filter: string) => void;
+  activeSort?: string;
+  onSortChange?: (sort: string) => void;
+  activeTag?: string | null;
+  onTagSelect?: (tag: string | null) => void;
+  availableTags?: string[];
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ type }) => {
+const Sidebar: React.FC<SidebarProps> = ({
+  type,
+  counts,
+  activeFilter = 'all',
+  onFilterChange,
+  activeSort = 'Last Updated',
+  onSortChange,
+  activeTag,
+  onTagSelect,
+  availableTags = [],
+}) => {
   return (
     <aside className="hidden lg:block w-72 shrink-0 border-r border-slate-200 dark:border-slate-800 p-6 h-[calc(100vh-64px)] sticky top-[64px] overflow-y-auto custom-scrollbar bg-background-light dark:bg-background-dark/50">
       
@@ -24,15 +43,28 @@ const Sidebar: React.FC<SidebarProps> = ({ type }) => {
         <div className="mb-8">
           <h3 className="text-sm font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-4">Library</h3>
           <nav className="space-y-1">
-            <SidebarLink to="/lists" icon="format_list_bulleted" label="All Lists" count={12} />
-            <SidebarLink to="/lists/liked" icon="favorite" label="Liked Lists" count={8} />
-            <SidebarLink to="/lists/saved" icon="bookmarks" label="Saved for Later" count={3} />
-            <SidebarLink to="/lists/archived" icon="archive" label="Archived" />
+            <SidebarFilterButton
+              icon="format_list_bulleted"
+              label="All Lists"
+              count={counts?.all}
+              isActive={activeFilter === 'all'}
+              onClick={() => onFilterChange?.('all')}
+            />
+            <SidebarFilterButton
+              icon="favorite"
+              label="Liked Lists"
+              count={counts?.liked}
+              isActive={activeFilter === 'liked'}
+              onClick={() => onFilterChange?.('liked')}
+            />
+            <SidebarFilterButton
+              icon="bookmarks"
+              label="Saved for Later"
+              count={counts?.saved}
+              isActive={activeFilter === 'saved'}
+              onClick={() => onFilterChange?.('saved')}
+            />
           </nav>
-	  
-
-
-	  
         </div>
       )}
 
@@ -65,13 +97,16 @@ const Sidebar: React.FC<SidebarProps> = ({ type }) => {
           <div className="space-y-2">
             {['Last Updated', 'Name (A-Z)', 'Book Count'].map((label) => (
               <label key={label} className="flex items-center gap-3 cursor-pointer group">
-                <input 
-                  type="radio" 
-                  name="sort" 
-                  defaultChecked={label === 'Last Updated'}
-                  className="h-4 w-4 border-slate-300 dark:border-slate-600 bg-transparent text-primary focus:ring-offset-0 focus:ring-primary/20" 
+                <input
+                  type="radio"
+                  name="sort"
+                  checked={activeSort === label}
+                  onChange={() => onSortChange?.(label)}
+                  className="h-4 w-4 border-slate-300 dark:border-slate-600 bg-transparent text-primary focus:ring-0 focus:ring-offset-0"
                 />
-                <span className="text-slate-600 dark:text-slate-300 group-hover:text-primary text-sm font-medium transition-colors">
+                <span className={`text-sm font-medium transition-colors ${
+                  activeSort === label ? 'text-primary' : 'text-slate-600 dark:text-slate-300 group-hover:text-primary'
+                }`}>
                   {label}
                 </span>
               </label>
@@ -80,10 +115,10 @@ const Sidebar: React.FC<SidebarProps> = ({ type }) => {
         </div>
       )}
 
-      {/* 3. BOTTOM SECTION: Tags (Common to both) */}
+      {/* 3. BOTTOM SECTION: Tags / Collections */}
       <div>
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 px-2">
+        <div className="flex items-center justify-between mb-4 px-2">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
             {type === 'tracker' ? 'Collections' : 'Tags'}
           </h3>
           {type === 'lists' && (
@@ -92,14 +127,23 @@ const Sidebar: React.FC<SidebarProps> = ({ type }) => {
             </button>
           )}
         </div>
+        
         <div className="flex flex-wrap gap-2 px-2">
-          {['#favorites', '#2024', '#scifi', '#nonfiction'].map((tag) => (
-            <span 
-              key={tag} 
-              className="px-2 py-1 rounded-md bg-slate-100 hover:dark:bg-slate-800 hover:bg-slate-300 text-xs font-medium text-slate-600  border border-slate-200 dark:border-slate-700 cursor-pointer "
-            >
-              {tag}
-            </span>
+          {type === 'lists' && (
+             <TagBadge 
+               tag="#all" 
+               isActive={!activeTag} 
+               onClick={() => onTagSelect?.(null)} 
+             />
+          )}
+          
+          {(type === 'lists' ? availableTags : ['#favorites', '#2024', '#scifi']).map((tag) => (
+            <TagBadge
+              key={tag}
+              tag={tag.startsWith('#') ? tag : `#${tag}`}
+              isActive={activeTag === tag}
+              onClick={() => type === 'lists' ? onTagSelect?.(tag) : null}
+            />
           ))}
         </div>
       </div>
@@ -107,7 +151,9 @@ const Sidebar: React.FC<SidebarProps> = ({ type }) => {
   );
 };
 
-/* Helper Component for Sidebar Links */
+/** 
+ * Helper Component for Navigation Links (Tracker Style) 
+ */
 interface SidebarLinkProps {
   to: string;
   icon: string;
@@ -120,8 +166,8 @@ const SidebarLink: React.FC<SidebarLinkProps> = ({ to, icon, label, count }) => 
     to={to}
     className={({ isActive }) =>
       `flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-all group ${
-        isActive 
-          ? 'bg-primary/10 text-primary font-bold' 
+        isActive
+          ? 'bg-primary/10 text-primary font-bold'
           : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
       }`
     }
@@ -134,6 +180,52 @@ const SidebarLink: React.FC<SidebarLinkProps> = ({ to, icon, label, count }) => 
       <span className="ml-auto text-xs opacity-60 font-normal">{count}</span>
     )}
   </NavLink>
+);
+
+/** 
+ * Helper Component for State-based Filters (Lists Style) 
+ */
+interface SidebarFilterButtonProps {
+  icon: string;
+  label: string;
+  count?: number;
+  isActive: boolean;
+  onClick: () => void;
+}
+
+const SidebarFilterButton: React.FC<SidebarFilterButtonProps> = ({ icon, label, count, isActive, onClick }) => (
+  <button
+    onClick={onClick}
+    className={`w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-all group ${
+      isActive
+        ? 'bg-primary/10 text-primary font-bold'
+        : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+    }`}
+  >
+    <span className="material-symbols-outlined text-[20px] group-hover:scale-110 transition-transform">
+      {icon}
+    </span>
+    {label}
+    {count !== undefined && (
+      <span className="ml-auto text-xs opacity-60 font-normal">{count}</span>
+    )}
+  </button>
+);
+
+/**
+ * Helper Component for Tags
+ */
+const TagBadge: React.FC<{ tag: string; isActive: boolean; onClick: () => void }> = ({ tag, isActive, onClick }) => (
+  <span
+    onClick={onClick}
+    className={`px-2 py-1 rounded-md text-xs font-medium border cursor-pointer transition-all ${
+      isActive
+        ? 'bg-primary text-white border-primary shadow-sm'
+        : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700'
+    }`}
+  >
+    {tag}
+  </span>
 );
 
 export default Sidebar;

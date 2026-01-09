@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import Header from '@/components/Header';
 import Sidebar from '@/components/Sidebar';
 import { supabase } from '@/lib/supabase';
@@ -16,9 +16,9 @@ interface ListData {
   tag: string;
   book_count: number;
   covers: string[];
+  updated_at: string; // Added for sorting
 }
 
-// Interface for the book object required by the AddBook Modal
 interface BookData {
   title: string;
   author: string;
@@ -31,14 +31,16 @@ const Lists: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
   
+  // --- NEW FILTER & SORT STATES ---
+  const [activeFilter, setActiveFilter] = useState('all'); // 'all', 'liked', 'saved'
+  const [activeSort, setActiveSort] = useState('Last Updated');
+  const [activeTag, setActiveTag] = useState<string | null>(null);
+
   // Modal Visibility States
   const [activeModal, setActiveModal] = useState<'create' | 'add' | 'update' | 'delete' | 'view' | null>(null);
-  
-  // State for the list currently being interacted with
   const [selectedList, setSelectedList] = useState<ListData | null>(null);
   const [selectedBook, setSelectedBook] = useState<BookData | null>(null);
 
-  // 1. Fetch Lists from Supabase
   const fetchLists = async () => {
     try {
       setLoading(true);
@@ -54,7 +56,7 @@ const Lists: React.FC = () => {
           )
         `)
         .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
+        .order('updated_at', { ascending: false });
 
       if (error) throw error;
 
@@ -63,6 +65,7 @@ const Lists: React.FC = () => {
         title: list.title,
         is_public: list.is_public,
         tag: list.tag || "#general",
+        updated_at: list.updated_at,
         book_count: list.list_items?.length || 0,
         covers: list.list_items?.slice(0, 3).map((item: any) => item.books.cover_url) || []
       }));
@@ -80,64 +83,93 @@ const Lists: React.FC = () => {
     fetchLists();
   }, []);
 
-  // Action Handlers
+  // --- DYNAMIC LOGIC FOR SIDEBAR ---
+  const availableTags = useMemo(() => {
+    const tags = lists.map(l => l.tag).filter(Boolean);
+    return Array.from(new Set(tags));
+  }, [lists]);
+
+  const counts = useMemo(() => ({
+    all: lists.length,
+    liked: lists.filter(l => l.is_public).length, // Using public as a proxy for 'liked'
+    saved: 0 // Placeholder logic
+  }), [lists]);
+
+  // --- FILTERING AND SORTING ENGINE ---
+  const filteredAndSortedLists = useMemo(() => {
+    let result = [...lists];
+
+    // 1. Filter by Search Query
+    if (searchQuery) {
+      result = result.filter(l => l.title.toLowerCase().includes(searchQuery.toLowerCase()));
+    }
+
+    // 2. Filter by Sidebar Category
+    if (activeFilter === 'liked') {
+      result = result.filter(l => l.is_public);
+    }
+    // Add logic for 'saved' if you have a saved_lists table/column
+
+    // 3. Filter by Tag
+    if (activeTag) {
+      result = result.filter(l => l.tag === activeTag);
+    }
+
+    // 4. Sort
+    result.sort((a, b) => {
+      if (activeSort === 'Name (A-Z)') return a.title.localeCompare(b.title);
+      if (activeSort === 'Book Count') return b.book_count - a.book_count;
+      if (activeSort === 'Last Updated') {
+        return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
+      }
+      return 0;
+    });
+
+    return result;
+  }, [lists, searchQuery, activeFilter, activeTag, activeSort]);
+
   const handleAction = (type: 'create' | 'add' | 'update' | 'delete' | 'view', list: ListData | null = null) => {
     setSelectedList(list);
     setActiveModal(type);
   };
 
-  const filteredLists = lists.filter(l =>
-    l.title.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
   return (
     <div className="flex flex-col h-screen bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-display min-h-screen transition-colors duration-200">
       <Header variant="app" />
 
-      {/* --- ALL MODALS --- */}
-      <CreateListModal
-        isOpen={activeModal === 'create'}
-        onClose={() => setActiveModal(null)}
-        onSuccess={fetchLists}
-      />
-
-<AddBookToListModal
-        isOpen={activeModal === 'add'}
-        onClose={() => {
-            setActiveModal(null);
-            setSelectedBook(null); // Clean up state on close
-        }}
+      {/* --- MODALS --- */}
+      <CreateListModal isOpen={activeModal === 'create'} onClose={() => setActiveModal(null)} onSuccess={fetchLists} />
+      <AddBookToListModal 
+        isOpen={activeModal === 'add'} 
+        onClose={() => { setActiveModal(null); setSelectedBook(null); }} 
         onSuccess={fetchLists}
         listId={selectedList?.id || null}
         listTitle={selectedList?.title || null}
-        book={selectedBook} // <--- FIXED: Added the required book prop
+        book={selectedBook}
       />
-      <UpdateListModal 
-        isOpen={activeModal === 'update'}
-        onClose={() => setActiveModal(null)}
-        onSuccess={fetchLists}
-        list={selectedList}
-      />
-
-
-      <ListViewModal 
-        isOpen={activeModal === 'view'}
-        onClose={() => setActiveModal(null)}
-        listId={selectedList?.id || ""}
-        listTitle={selectedList?.title || ""}
-        onRefresh={fetchLists}
-      />
+      <UpdateListModal isOpen={activeModal === 'update'} onClose={() => setActiveModal(null)} onSuccess={fetchLists} list={selectedList} />
+      <ListViewModal isOpen={activeModal === 'view'} onClose={() => setActiveModal(null)} listId={selectedList?.id || ""} listTitle={selectedList?.title || ""} onRefresh={fetchLists} />
 
       <main className="flex-1 flex flex-col lg:flex-row max-w-[1600px] w-full mx-auto">
         <aside className="hidden md:flex w-70 border-r border-slate-200 dark:border-slate-800 ">
-          <Sidebar type="lists" />
+          <Sidebar 
+            type="lists" 
+            counts={counts}
+            activeFilter={activeFilter}
+            onFilterChange={setActiveFilter}
+            activeSort={activeSort}
+            onSortChange={setActiveSort}
+            activeTag={activeTag}
+            onTagSelect={setActiveTag}
+            availableTags={availableTags}
+          />
         </aside>
 
-        <div className="flex-1 flex flex-col min-w-0 ml-30">
+        <div className="flex-1 flex flex-col min-w-0 ml-0 lg:ml-0"> {/* Adjusted margin for layout */}
           <div className="sticky top-0 z-40 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur border-b border-slate-200 dark:border-slate-800 px-6 lg:px-10 py-6">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
               <div>
-                <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white uppercase tracking-tight">Your Lists</h1>
+                <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Your Lists</h1>
                 <p className="text-slate-500 dark:text-slate-400 mt-1">Manage and curate your collections.</p>
               </div>
               <button
@@ -164,9 +196,8 @@ const Lists: React.FC = () => {
 
           <div className="p-6 lg:p-10">
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-
-              {/* Render User Lists */}
-              {!loading && filteredLists.map((list) => (
+              
+              {!loading && filteredAndSortedLists.map((list) => (
                 <ListCard
                   key={list.id}
                   list={list}
@@ -177,10 +208,15 @@ const Lists: React.FC = () => {
                 />
               ))}
 
-              {/* Skeleton/Empty State */}
-              {loading && <div className="col-span-full py-12 text-center text-slate-400 animate-pulse font-bold uppercase tracking-widest text-xs">Syncing your library...</div>}
+              {loading && <div className="col-span-full py-12 text-center text-slate-400 animate-pulse font-bold uppercase tracking-widest text-xs">Syncing library...</div>}
 
-              {/* Create New List Placeholder Card */}
+              {!loading && filteredAndSortedLists.length === 0 && (
+                <div className="col-span-full py-12 text-center text-slate-400">
+                  No lists found matching these filters.
+                </div>
+              )}
+
+              {/* Add Button Placeholder Card */}
               <div
                 onClick={() => handleAction('create')}
                 className="group relative dark:bg-surface-dark rounded-2xl p-6 border border-slate-200 dark:border-slate-700 hover:border-primary/50 transition-all shadow-sm flex flex-col h-full hover:shadow-md cursor-pointer border-dashed min-h-[320px]"
@@ -221,13 +257,13 @@ const ListCard: React.FC<{
   return (
     <div 
       onClick={onView}
-      className="group relative dark:bg-surface-dark rounded-2xl p-5 border border-slate-200 dark:border-slate-700 hover:border-primary/50 transition-all shadow-sm flex flex-col h-full hover:shadow-xl cursor-pointer bg-white"
+      className="group relative dark:bg-surface-dark rounded-2xl p-5 border border-slate-200 dark:border-slate-700 hover:border-primary/50 transition-all shadow-sm flex flex-col h-full hover:shadow-xl cursor-pointer "
     >
       <div className="flex items-start justify-between mb-4">
         <div className="flex-1 min-w-0 mr-2">
-          <h3 className="font-black text-lg text-slate-900 dark:text-white group-hover:text-primary transition-colors leading-tight truncate uppercase tracking-tight">
+          <p className="font-black text-lg text-slate-900 dark:text-white group-hover:text-primary transition-colors leading-tight truncate tracking-tight">
             {list.title}
-          </h3>
+          </p>
           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">
             {list.book_count} books • {list.tag}
           </p>
