@@ -1,73 +1,123 @@
-# Welcome to your Lovable project
+    
+# 📚 WellRead — Your Social Library & Reading Tracker
 
-## Project info
+WellRead is a modern, social-first platform for book lovers to track their reading journey, curate custom collections, and visualize their reading habits. Built with a focus on speed and user experience, it allows readers to manage their "To-Read" lists, track real-time progress on active books, and set yearly reading goals.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+## 🚀 Live Demo
+**URL**: [https://wellread-app.netlify.app](https://wellread-app.netlify.app)
 
-## How can I edit this code?
+---
 
-There are several ways of editing your application.
+## ✨ Key Features
 
-**Use Lovable**
+### 📖 Library Management
+- **Custom Lists:** Create, update, and delete curated book collections (e.g., "#SciFi", "#Favorites").
+- **Dynamic Filtering & Sorting:** Sort your library by "Last Updated," "Alphabetical," or "Book Count."
+- **Privacy Controls:** Toggle lists between Public and Private visibility.
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+### ⏱️ Real-time Reading Tracker
+- **Central Dashboard:** A single hub to view your active book, yearly progress, and quick stats.
+- **Progress Visualization:** Update your current page and see real-time completion percentages with interactive progress bars.
+- **Replace/Swap Logic:** Seamlessly switch between active books while maintaining your library history.
 
-Changes made via Lovable will be committed automatically to this repo.
+### 📊 Insights & Challenges
+- **Automated Stats:** Real-time calculation of total pages read, average ratings, and review counts.
+- **2026 Reading Challenge:** Set a yearly book goal and monitor your pace with a "Pace Indicator" (Books ahead/behind schedule).
+- **Global Data Sync:** Powered by a centralized `LibraryContext` for instant updates across the Dashboard, Library, and Stats tabs.
 
-**Use your preferred IDE**
+### 🔒 Security
+- **Secure Authentication:** Full sign-up and login flow powered by Supabase Auth.
+- **Protected Routing:** Ensures your personal library and stats are only accessible to you.
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+---
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+## 🛠️ Tech Stack
 
-Follow these steps:
+- **Frontend:** React 18 (Vite), TypeScript
+- **Styling:** Tailwind CSS, shadcn/ui
+- **Backend/Database:** Supabase (PostgreSQL)
+- **State Management:** React Context API
+- **Icons:** Google Material Symbols
+- **Notifications:** Sonner (Toast notifications)
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
+---
+
+## ⚙️ Database Setup (Supabase)
+
+To ensure the sorting and syncing features work correctly, run the following SQL script in your **Supabase SQL Editor** to add the necessary `updated_at` columns and triggers:
+
+```sql
+-- 1. Add updated_at column to the lists table
+ALTER TABLE public.lists 
+ADD COLUMN updated_at TIMESTAMPTZ DEFAULT now();
+
+-- 2. Enable the extension for automatic timestamps
+CREATE EXTENSION IF NOT EXISTS moddatetime SCHEMA extensions;
+
+-- 3. Create the trigger for the lists table
+CREATE TRIGGER handle_updated_at
+  BEFORE UPDATE ON public.lists
+  FOR EACH ROW
+  EXECUTE PROCEDURE moddatetime (updated_at);
+
+  
+
+🛠️ Local Development
+Prerequisites
+
+    Node.js & npm installed
+
+    A Supabase project (URL and Anon Key)
+
+Installation
+code Sh
+
+    
+# 1. Clone the repository
 git clone <YOUR_GIT_URL>
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+# 2. Navigate to the project directory
+cd wellread
 
-# Step 3: Install the necessary dependencies.
-npm i
+# 3. Install dependencies
+npm install
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# 4. Start the development server
 npm run dev
-```
 
-**Edit a file directly in GitHub**
+  
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+Environment Variables
 
-**Use GitHub Codespaces**
+Create a .env file in the root directory and add your Supabase credentials:
+code Env
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+    
+VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 
-## What technologies are used for this project?
+  
 
-This project is built with:
+🌐 Deployment
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+The project is optimized for deployment on Netlify.
 
-## How can I deploy this project?
+    Connect your GitHub repository to Netlify.
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+    Build Command: npm run build
 
-## Can I connect a custom domain to my Lovable project?
+    Publish Directory: dist
 
-Yes, you can!
+    Important: Add your VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to the Environment Variables in the Netlify Site Settings.
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+🗺️ Roadmap
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+    Social Feed: Share reading updates and reviews with friends.
+
+    External API Integration: Search for books using the Google Books API.
+
+    Achievement System: Earn badges for reading streaks and genre diversity.
+
+    Mobile App: Responsive PWA support for tracking on mobile devices.
+
+Created with ❤️ by Francis Rey Betonio
