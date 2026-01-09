@@ -4,7 +4,7 @@
 WellRead is a modern, social-first platform for book lovers to track their reading journey, curate custom collections, and visualize their reading habits. Built with a focus on speed and user experience, it allows readers to manage their "To-Read" lists, track real-time progress on active books, and set yearly reading goals.
 
 ## 🚀 Live Demo
-**URL**: [https://wellread-app.netlify.app](https://wellread-app.netlify.app)
+**URL**: [https://wellread-v1.netlify.app/](https://wellread-v1.netlify.app)
 
 ---
 
