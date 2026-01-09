@@ -3,7 +3,21 @@ import { NavLink } from 'react-router-dom';
 
 interface SidebarProps {
   type: 'tracker' | 'lists';
-  // Props for "Lists" functionality
+  
+  // --- Props for "Tracker" functionality ---
+  userProfile?: {
+    name: string;
+    username: string;
+    avatar_url?: string;
+  };
+  trackerCounts?: {
+    all: number;
+    read: number;
+    currentlyReading: number;
+  };
+  collections?: string[];
+
+  // --- Props for "Lists" functionality (Logic Unchanged) ---
   counts?: { all: number; liked: number; saved: number };
   activeFilter?: string;
   onFilterChange?: (filter: string) => void;
@@ -16,6 +30,12 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({
   type,
+  // Tracker defaults
+  userProfile = { name: "User", username: "username" },
+  trackerCounts = { all: 0, read: 0, currentlyReading: 0 },
+  collections = ['#favorites', '#2024', '#scifi'],
+  
+  // Lists defaults
   counts,
   activeFilter = 'all',
   onFilterChange,
@@ -32,11 +52,15 @@ const Sidebar: React.FC<SidebarProps> = ({
       {type === 'tracker' ? (
         <div className="mb-8 flex items-center gap-3 pb-6 border-b border-slate-200 dark:border-slate-800">
           <div className="h-10 w-10 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center overflow-hidden">
-            <span className="material-symbols-outlined text-slate-500 dark:text-slate-400">person</span>
+            {userProfile.avatar_url ? (
+                <img src={userProfile.avatar_url} alt="profile" className="w-full h-full object-cover" />
+            ) : (
+                <span className="material-symbols-outlined text-slate-500 dark:text-slate-400">person</span>
+            )}
           </div>
           <div>
-            <div className="text-sm font-bold text-slate-900 dark:text-white">Francis Rey</div>
-            <div className="text-xs text-slate-500 dark:text-slate-400">@fr_betonio</div>
+            <div className="text-sm font-bold text-slate-900 dark:text-white">{userProfile.name}</div>
+            <div className="text-xs text-slate-500 dark:text-slate-400">@{userProfile.username}</div>
           </div>
         </div>
       ) : (
@@ -75,10 +99,9 @@ const Sidebar: React.FC<SidebarProps> = ({
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-4 px-2">My Library</h3>
             <nav className="space-y-1">
               <SidebarLink to="/dashboard" icon="dashboard" label="Dashboard" />
-              <SidebarLink to="/all-books" icon="library_books" label="All Books" count={142} />
-              <SidebarLink to="/read" icon="check_circle" label="Read" count={98} />
-              <SidebarLink to="/currently-reading" icon="timelapse" label="Currently Reading" count={2} />
-              <SidebarLink to="/want-to-read" icon="bookmark" label="Want to Read" count={42} />
+              <SidebarLink to="/all-books" icon="library_books" label="All Books" count={trackerCounts.all} />
+              <SidebarLink to="/read" icon="check_circle" label="Read" count={trackerCounts.read} />
+              <SidebarLink to="/currently-reading" icon="timelapse" label="Currently Reading" count={trackerCounts.currentlyReading} />
             </nav>
           </div>
 
@@ -86,7 +109,6 @@ const Sidebar: React.FC<SidebarProps> = ({
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-4 px-2">Insights</h3>
             <nav className="space-y-1">
               <SidebarLink to="/stats" icon="bar_chart" label="Stats" />
-              <SidebarLink to="/diary" icon="calendar_month" label="Reading Diary" />
               <SidebarLink to="/challenge" icon="emoji_events" label="2024 Challenge" />
             </nav>
           </div>
@@ -137,7 +159,7 @@ const Sidebar: React.FC<SidebarProps> = ({
              />
           )}
           
-          {(type === 'lists' ? availableTags : ['#favorites', '#2024', '#scifi']).map((tag) => (
+          {(type === 'lists' ? availableTags : collections).map((tag) => (
             <TagBadge
               key={tag}
               tag={tag.startsWith('#') ? tag : `#${tag}`}
@@ -151,9 +173,8 @@ const Sidebar: React.FC<SidebarProps> = ({
   );
 };
 
-/** 
- * Helper Component for Navigation Links (Tracker Style) 
- */
+/* --- Helper Components (Styling preserved) --- */
+
 interface SidebarLinkProps {
   to: string;
   icon: string;
@@ -182,9 +203,6 @@ const SidebarLink: React.FC<SidebarLinkProps> = ({ to, icon, label, count }) => 
   </NavLink>
 );
 
-/** 
- * Helper Component for State-based Filters (Lists Style) 
- */
 interface SidebarFilterButtonProps {
   icon: string;
   label: string;
@@ -212,9 +230,6 @@ const SidebarFilterButton: React.FC<SidebarFilterButtonProps> = ({ icon, label, 
   </button>
 );
 
-/**
- * Helper Component for Tags
- */
 const TagBadge: React.FC<{ tag: string; isActive: boolean; onClick: () => void }> = ({ tag, isActive, onClick }) => (
   <span
     onClick={onClick}

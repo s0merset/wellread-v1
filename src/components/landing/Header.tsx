@@ -9,17 +9,6 @@ const Header = () => {
           <span className="text-4xl font-bold tracking-tight text-foreground">WellRead</span>
         </div>
 
-        <nav className="hidden md:flex items-center gap-8">
-          <a className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors" href="#">
-            Features
-          </a>
-          <a className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors" href="#">
-            Community
-          </a>
-          <a className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors" href="#">
-            Pro
-          </a>
-        </nav>
 
         <div className="flex items-center gap-3">
           <Button variant="ghost" className="hidden sm:flex text-muted-foreground hover:text-foreground" asChild>

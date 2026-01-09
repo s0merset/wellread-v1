@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import Sidebar from '@/components/Sidebar';
 import Header from '@/components/Header';
 import { supabase } from '@/lib/supabase';
@@ -7,99 +7,60 @@ import UpdateProgressModal from '@/components/tracker/UpdateProgress';
 import EditGoalModal from '@/components/tracker/EditGoal';
 import SelectBookModal from '@/components/tracker/SelectBook';
 import ReplaceBookModal from '@/components/tracker/ReplaceBook';
+import { useLibrary } from '@/context/LibraryContext';
 
-// --- Types ---
-interface Book {
-  title: string;
-  author: string;
-  cover_url: string;
-  total_pages: number;
-}
-
-interface UserBook {
-  id: string;
-  current_page: number;
-  status: string;
-  rating?: number;
-  review_text?: string;
-  books: Book;
-  updated_at?: string;
-}
+// Types
+interface Book { title: string; author: string; cover_url: string; total_pages: number; }
+interface UserBook { id: string; current_page: number; status: string; rating?: number; review_text?: string; books: Book; updated_at?: string; }
 
 const Tracker: React.FC = () => {
-  // --- 1. STATE ---
-  const [loading, setLoading] = useState(true);
-  
-  // Data State
-  const [library, setLibrary] = useState<UserBook[]>([]);
-  const [currentlyReading, setCurrentlyReading] = useState<UserBook | null>(null);
-  const [recentlyFinished, setRecentlyFinished] = useState<string[]>([]);
-  
-  // Search State
+  // --- 1. CONTEXT ---
+  const { library, userProfile, counts, loading, refresh } = useLibrary();
+
+  // --- 2. LOCAL STATE (UI & Dashboard-specific metadata) ---
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('all');
-
-  // Modal State
+  
+  // Modals
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
   const [isGoalModalOpen, setIsGoalModalOpen] = useState(false);
   const [isSelectBookModalOpen, setIsSelectBookModalOpen] = useState(false);
-  const [isReplaceModalOpen, setIsReplaceModalOpen] = useState(false); // New State
+  const [isReplaceModalOpen, setIsReplaceModalOpen] = useState(false);
   
-  const [stats, setStats] = useState({
-    pagesRead: 0,
-    avgRating: 0,
-    reviewsCount: 0,
-    finishedCount: 0
-  });
+  // Challenge is specific to this dashboard view
+  const [challenge, setChallenge] = useState({ target: 50, current: 0, ahead: 0, percent: 0 });
 
-  const [challenge, setChallenge] = useState({
-    target: 50,
-    current: 0,
-    ahead: 0,
-    percent: 0
-  });
+  // --- 3. DERIVED DATA (Calculated from Context library) ---
+  const currentlyReading = useMemo(() => 
+    (library as UserBook[]).find(b => b.status === 'reading') || null
+  , [library]);
 
-  // --- 2. LOGIC ---
-  const fetchTrackerData = async () => {
+  const recentlyFinished = useMemo(() => 
+    (library as UserBook[])
+      .filter(b => b.status === 'finished')
+      .slice(0, 4)
+      .map(b => b.books.cover_url)
+  , [library]);
+
+  const stats = useMemo(() => {
+    const finished = (library as UserBook[]).filter(b => b.status === 'finished');
+    const totalPages = finished.reduce((acc, curr) => acc + (curr.books.total_pages || 0), 0);
+    const ratings = finished.filter(b => b.rating).map(b => b.rating as number);
+    const avgRating = ratings.length ? (ratings.reduce((a, b) => a + b, 0) / ratings.length).toFixed(1) : "0";
+
+    return {
+      pagesRead: totalPages,
+      avgRating: Number(avgRating),
+      reviewsCount: finished.filter(b => b.review_text).length,
+      finishedCount: finished.length
+    };
+  }, [library]);
+
+  // --- 4. DASHBOARD-SPECIFIC FETCHING (Challenge) ---
+  const fetchChallengeData = async () => {
     try {
-      setLoading(true);
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
-
-      // Use explicit join syntax to avoid errors
-      let query = supabase
-        .from('user_books')
-        .select(`
-          *,
-          books:book_id (*)
-        `)
-        .eq('user_id', user.id);
-
-      const { data: userBooks, error: booksError } = await query.order('updated_at', { ascending: false });
-
-      if (booksError) throw new Error(booksError.message);
-
-      const allBooks = (userBooks as any[]) || [];
-      const validBooks = allBooks.filter(b => b.books !== null);
-      
-      setLibrary(validBooks);
-
-      const finished = validBooks.filter(b => b.status === 'finished');
-      const reading = validBooks.find(b => b.status === 'reading');
-
-      const totalPages = finished.reduce((acc, curr) => acc + (curr.books.total_pages || 0), 0);
-      const ratings = finished.filter(b => b.rating).map(b => b.rating as number);
-      const avgRating = ratings.length ? (ratings.reduce((a, b) => a + b, 0) / ratings.length).toFixed(1) : "0";
-
-      setStats({
-        pagesRead: totalPages,
-        avgRating: Number(avgRating),
-        reviewsCount: finished.filter(b => b.review_text).length,
-        finishedCount: finished.length
-      });
-
-      setCurrentlyReading(reading || null);
-      setRecentlyFinished(finished.slice(0, 4).map(b => b.books.cover_url));
 
       const currentYear = new Date().getFullYear();
       const { data: challengeData } = await supabase
@@ -111,62 +72,44 @@ const Tracker: React.FC = () => {
 
       if (challengeData) {
         const target = challengeData.target_books;
+        const finishedCount = library.filter(b => b.status === 'finished').length;
         const dayOfYear = Math.floor((Date.now() - new Date(currentYear, 0, 0).getTime()) / 86400000);
         const expected = (target / 365) * dayOfYear;
         
         setChallenge({
           target,
-          current: finished.length,
-          ahead: finished.length - Math.floor(expected),
-          percent: Math.min(Math.round((finished.length / target) * 100), 100)
+          current: finishedCount,
+          ahead: finishedCount - Math.floor(expected),
+          percent: Math.min(Math.round((finishedCount / target) * 100), 100)
         });
       }
-
-    } catch (error: any) {
-      console.error("Tracker Sync Error:", error);
-      toast.error(`Sync failed: ${error.message}`);
-    } finally {
-      setLoading(false);
+    } catch (error) {
+      console.error("Challenge Fetch Error:", error);
     }
   };
 
   useEffect(() => {
-    fetchTrackerData();
-  }, []);
+    if (!loading) fetchChallengeData();
+  }, [library, loading]);
 
-  // --- NEW: Actual Deletion Logic ---
+  // --- 5. ACTION HANDLERS ---
   const confirmReplaceBook = async () => {
     if (!currentlyReading) return;
-
     try {
-      const { error } = await supabase
-        .from('user_books')
-        .delete()
-        .eq('id', currentlyReading.id);
-
+      const { error } = await supabase.from('user_books').delete().eq('id', currentlyReading.id);
       if (error) throw error;
-
       toast.success("Book removed");
-      setIsReplaceModalOpen(false); // Close confirmation modal
-      
-      // Refresh data
-      await fetchTrackerData();
-      
-      // Open selection modal immediately so user can pick next book
+      setIsReplaceModalOpen(false); 
+      await refresh(); // Refresh Global Context
       setIsSelectBookModalOpen(true);
-
     } catch (error) {
-      console.error(error);
       toast.error("Failed to remove book");
     }
   };
 
-  // --- Search Logic ---
-  const filteredLibrary = library.filter(item => {
-    const matchesSearch = 
-      item.books.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-      item.books.author.toLowerCase().includes(searchQuery.toLowerCase());
-    
+  const filteredLibrary = (library as UserBook[]).filter(item => {
+    const matchesSearch = item.books.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                          item.books.author.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = filterStatus === 'all' || item.status === filterStatus;
     return matchesSearch && matchesStatus;
   });
@@ -181,50 +124,31 @@ const Tracker: React.FC = () => {
     <div className="bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-display min-h-screen flex flex-col transition-colors duration-200">
       <Header variant="app"/>
       
-      {/* --- MODALS --- */}
-      <UpdateProgressModal 
-        isOpen={isUpdateModalOpen}
-        onClose={() => setIsUpdateModalOpen(false)}
-        onSuccess={fetchTrackerData}
-        bookData={currentlyReading}
-      />
-      <EditGoalModal
-        isOpen={isGoalModalOpen}
-        onClose={() => setIsGoalModalOpen(false)}
-        onSuccess={fetchTrackerData}
-        currentTarget={challenge.target}
-      />
-      <SelectBookModal
-        isOpen={isSelectBookModalOpen}
-        onClose={() => setIsSelectBookModalOpen(false)}
-        onSuccess={fetchTrackerData}
-      />
-      
-      {/* NEW: Replace Book Modal */}
-      <ReplaceBookModal
-        isOpen={isReplaceModalOpen}
-        onClose={() => setIsReplaceModalOpen(false)}
-        onConfirm={confirmReplaceBook}
-        bookTitle={currentlyReading?.books.title || ''}
-      />
+      {/* MODALS */}
+      <UpdateProgressModal isOpen={isUpdateModalOpen} onClose={() => setIsUpdateModalOpen(false)} onSuccess={refresh} bookData={currentlyReading} />
+      <EditGoalModal isOpen={isGoalModalOpen} onClose={() => setIsGoalModalOpen(false)} onSuccess={refresh} currentTarget={challenge.target} />
+      <SelectBookModal isOpen={isSelectBookModalOpen} onClose={() => setIsSelectBookModalOpen(false)} onSuccess={refresh} />
+      <ReplaceBookModal isOpen={isReplaceModalOpen} onClose={() => setIsReplaceModalOpen(false)} onConfirm={confirmReplaceBook} bookTitle={currentlyReading?.books.title || ''} />
 
       <div className="flex-1 flex flex-col lg:flex-row max-w-[1600px] w-full mx-auto">
         <aside className="hidden md:flex w-70 border-r border-slate-200 dark:border-slate-800 ">
-          <Sidebar type="tracker" />
+          <Sidebar 
+            type="tracker" 
+            userProfile={userProfile}
+            trackerCounts={counts}
+            collections={['#favorites', '#2026', '#classics', '#scifi']}
+          />
         </aside>
 
-        <div className="flex-1 min-w-0 p-6 lg:p-10 ml-30">
+        <div className="flex-1 min-w-0 p-6 lg:p-10 ml-0">
           <header className="mb-8 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white mb-2">My Dashboard</h1>
-              <p className="text-slate-500 dark:text-slate-400">Track your progress and manage your reading goals.</p>
+              <h1 className="text-3xl font-extrabold tracking-tight">My Dashboard</h1>
+              <p className="text-slate-500 mt-1">Track your progress and manage your reading goals.</p>
             </div>
-            <div className="flex items-center gap-3">
-              <span className="text-sm font-medium text-slate-500 dark:text-slate-400">Last updated: Just now</span>
-              <button onClick={fetchTrackerData} className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-slate-500">
-                <span className="material-symbols-outlined text-xl">refresh</span>
-              </button>
-            </div>
+            <button onClick={refresh} className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-slate-500">
+              <span className="material-symbols-outlined text-xl">refresh</span>
+            </button>
           </header>
 
           <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-10">
@@ -276,19 +200,12 @@ const Tracker: React.FC = () => {
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10">
             <div className="lg:col-span-2 space-y-6">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-bold flex items-center gap-2">
-                  <span className="material-symbols-outlined text-primary">timelapse</span> Currently Reading
-                </h3>
-                {!currentlyReading && (
-                  <button onClick={() => setIsSelectBookModalOpen(true)} className="group flex items-center gap-1.5 text-sm font-bold text-primary hover:text-blue-600 transition-colors">
-                    <span className="material-symbols-outlined text-xl group-hover:scale-110 transition-transform">add_circle</span> Pick from Lists
-                  </button>
-                )}
-              </div>
+              <h3 className="text-lg font-bold flex items-center gap-2">
+                <span className="material-symbols-outlined text-primary">timelapse</span> Currently Reading
+              </h3>
               
               {currentlyReading ? (
-                <div className="bg-gradient-to-br from-slate-900 to-slate-800 dark:from-surface-dark dark:to-background-dark rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-6 flex flex-col sm:flex-row gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div className="bg-gradient-to-br from-slate-900 to-slate-800 dark:from-surface-dark dark:to-background-dark rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-6 flex flex-col sm:flex-row gap-6">
                   <img alt={currentlyReading.books.title} className="shrink-0 w-24 sm:w-32 aspect-[2/3] rounded-lg object-cover shadow-md border border-white/10" src={currentlyReading.books.cover_url} />
                   <div className="flex-1 flex flex-col justify-between">
                     <div>
@@ -305,26 +222,15 @@ const Tracker: React.FC = () => {
                       </div>
                     </div>
                     
-                    {/* BUTTONS SECTION */}
                     <div className="flex gap-3">
-                      <button 
-                        onClick={() => setIsUpdateModalOpen(true)} 
-                        className="flex-1 bg-primary hover:bg-blue-600 text-white font-bold text-sm py-2.5 rounded-lg transition-all shadow-lg shadow-primary/20"
-                      >
+                      <button onClick={() => setIsUpdateModalOpen(true)} className="flex-1 bg-primary hover:bg-blue-600 text-white font-bold text-sm py-2.5 rounded-lg transition-all shadow-lg shadow-primary/20">
                         Update Progress
                       </button>
-                      
-                      {/* Replace Button -> Opens Modal */}
-                      <button 
-                        onClick={() => setIsReplaceModalOpen(true)}
-                        className="px-4 py-2.5 rounded-lg bg-slate-700 hover:bg-red-500/20 hover:text-red-400 border border-slate-600 hover:border-red-500/50 text-slate-300 font-bold text-sm transition-all flex items-center gap-2 group"
-                        title="Remove and Replace"
-                      >
+                      <button onClick={() => setIsReplaceModalOpen(true)} className="px-4 py-2.5 rounded-lg bg-slate-700 hover:bg-red-500/20 hover:text-red-400 border border-slate-600 text-slate-300 font-bold text-sm transition-all flex items-center gap-2">
                         <span className="material-symbols-outlined text-lg">swap_horiz</span>
-                        <span className="hidden sm:inline">Replace</span>
+                        <span>Replace</span>
                       </button>
                     </div>
-
                   </div>
                 </div>
               ) : (
@@ -332,8 +238,8 @@ const Tracker: React.FC = () => {
                   <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-1">
                     <span className="material-symbols-outlined text-3xl text-slate-400">auto_stories</span>
                   </div>
-                  <div className="font-bold text-slate-900 dark:text-white">No active book</div>
-                  <button onClick={() => setIsSelectBookModalOpen(true)} className="px-5 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-bold text-sm hover:opacity-90 transition-opacity">Start Reading</button>
+                  <div className="font-bold">No active book</div>
+                  <button onClick={() => setIsSelectBookModalOpen(true)} className="px-5 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-bold text-sm">Start Reading</button>
                 </div>
               )}
             </div>
@@ -357,35 +263,22 @@ const Tracker: React.FC = () => {
                 Search Library
               </h3>
               
-	      {/* --- NEW BUTTON: Track Another Book --- */}
-                <button 
-                  onClick={() => setIsSelectBookModalOpen(true)}
-                  className="px-3 py-1.5 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary text-xs font-bold transition-all flex items-center gap-1"
-                >
-                  <span className="material-symbols-outlined text-sm">add</span>
-                  Track New
+              <div className="flex items-center gap-3">
+                <button onClick={() => setIsSelectBookModalOpen(true)} className="px-3 py-1.5 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary text-xs font-bold transition-all flex items-center gap-1">
+                  <span className="material-symbols-outlined text-sm">add</span> Track New
                 </button>
 
-              <div className="flex gap-3">
-                <select 
-                  value={filterStatus}
-                  onChange={(e) => setFilterStatus(e.target.value)}
-                  className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-sm rounded-xl px-3 py-2 outline-none focus:border-primary"
-                >
+                <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm rounded-xl px-3 py-2 outline-none">
                   <option value="all">All Status</option>
                   <option value="reading">Reading</option>
                   <option value="finished">Finished</option>
-                  <option value="to_read">To Read</option>
                 </select>
 
                 <div className="relative">
                   <span className="material-symbols-outlined absolute left-3 top-2.5 text-slate-400 text-sm">search</span>
                   <input 
-                    type="text" 
-                    placeholder="Find title or author..." 
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-9 pr-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:ring-2 focus:ring-primary/50 outline-none w-full sm:w-64 text-slate-900 dark:text-white"
+                    type="text" placeholder="Find title..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-9 pr-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none w-full sm:w-64"
                   />
                 </div>
               </div>
@@ -403,80 +296,53 @@ const Tracker: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                    {filteredLibrary.length > 0 ? (
-                      filteredLibrary.map((book) => (
-                        <tr key={book.id} className="group hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-                          <td className="p-4 pl-6">
-                            <div className="flex items-center gap-4">
-                              <img src={book.books.cover_url} alt="cover" className="w-10 h-14 object-cover rounded shadow-sm border border-slate-200 dark:border-slate-700"/>
-                              <div>
-                                <div className="font-bold text-slate-900 dark:text-white text-sm">{book.books.title}</div>
-                                <div className="text-xs text-slate-500 dark:text-slate-400">{book.books.author}</div>
-                              </div>
+                    {filteredLibrary.map((book) => (
+                      <tr key={book.id} className="group hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                        <td className="p-4 pl-6">
+                          <div className="flex items-center gap-4">
+                            <img src={book.books.cover_url} alt="cover" className="w-10 h-14 object-cover rounded shadow-sm border border-slate-200 dark:border-slate-700"/>
+                            <div>
+                              <div className="font-bold text-sm">{book.books.title}</div>
+                              <div className="text-xs text-slate-500">{book.books.author}</div>
                             </div>
-                          </td>
-                          <td className="p-4">
-                            <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold border ${
-                              book.status === 'reading' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 border-blue-200 dark:border-blue-800' :
-                              book.status === 'finished' ? 'bg-green-100 dark:bg-green-900/30 text-green-600 border-green-200 dark:border-green-800' :
-                              'bg-slate-100 dark:bg-slate-800 text-slate-500 border-slate-200 dark:border-slate-700'
-                            }`}>
-                              {book.status === 'reading' ? 'In Progress' : book.status.charAt(0).toUpperCase() + book.status.slice(1)}
-                            </span>
-                          </td>
-                          <td className="p-4">
-                            <div className="w-32">
-                              <div className="flex justify-between text-[10px] font-bold text-slate-400 mb-1">
-                                <span>{Math.round((book.current_page / book.books.total_pages) * 100)}%</span>
-                                <span>{book.current_page}/{book.books.total_pages}</span>
-                              </div>
-                              <div className="h-1.5 w-full bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
-                                <div className={`h-full rounded-full ${book.status === 'finished' ? 'bg-green-500' : 'bg-primary'}`} style={{ width: `${(book.current_page / book.books.total_pages) * 100}%` }}></div>
-                              </div>
+                          </div>
+                        </td>
+                        <td className="p-4">
+                          <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold border ${
+                            book.status === 'reading' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 border-blue-200 dark:border-blue-800' :
+                            book.status === 'finished' ? 'bg-green-100 dark:bg-green-900/30 text-green-600 border-green-200 dark:border-green-800' :
+                            'bg-slate-100 dark:bg-slate-800 text-slate-500 border-slate-200 dark:border-slate-700'
+                          }`}>
+                            {book.status === 'reading' ? 'In Progress' : book.status}
+                          </span>
+                        </td>
+                        <td className="p-4">
+                          <div className="w-32">
+                            <div className="flex justify-between text-[10px] font-bold text-slate-400 mb-1">
+                              <span>{Math.round((book.current_page / book.books.total_pages) * 100)}%</span>
+                              <span>{book.current_page}/{book.books.total_pages}</span>
                             </div>
-                          </td>
-                          <td className="p-4 text-right pr-6">
-                             {book.status === 'reading' ? (
-                               <button 
-                                 onClick={() => {
-                                   setCurrentlyReading(book);
-                                   setIsUpdateModalOpen(true);
-                                 }}
-                                 className="text-primary hover:text-blue-700 text-xs font-bold hover:underline"
-                               >
-                                 Update
-                               </button>
-                             ) : book.status === 'finished' ? (
-                               <div className="flex items-center justify-end text-yellow-500 gap-0.5">
-                                 <span className="text-xs font-bold text-slate-500 dark:text-slate-400 mr-2">{book.rating || '-'}</span>
-                                 <span className="material-symbols-outlined text-sm">star</span>
-                               </div>
-                             ) : (
-                               <span className="text-xs text-slate-400">In List</span>
-                             )}
-                          </td>
-                        </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td colSpan={4} className="p-8 text-center text-slate-500 text-sm">
-                          No books found matching your search.
+                            <div className="h-1.5 w-full bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                              <div className={`h-full rounded-full ${book.status === 'finished' ? 'bg-green-500' : 'bg-primary'}`} style={{ width: `${(book.current_page / book.books.total_pages) * 100}%` }}></div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="p-4 text-right pr-6">
+                           <button onClick={() => setIsUpdateModalOpen(true)} className="text-primary hover:text-blue-700 text-xs font-bold hover:underline">Update</button>
                         </td>
                       </tr>
-                    )}
+                    ))}
                   </tbody>
                 </table>
               </div>
             </div>
           </div>
-
         </div>
       </div>
     </div>
   );
 };
 
-// --- Helper Components ---
 const TrackerStat = ({ icon, value, label, color }: { icon: string, value: string, label: string, color: string }) => {
   const colors: any = {
     blue: "bg-blue-100 dark:bg-blue-900/30 text-primary",
@@ -485,7 +351,7 @@ const TrackerStat = ({ icon, value, label, color }: { icon: string, value: strin
     purple: "bg-purple-100 dark:bg-purple-900/30 text-purple-600"
   };
   return (
-    <div className="bg-gradient-to-br from-slate-900 to-slate-800 dark:from-surface-dark dark:to-background-dark p-5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm text-white hover:scale-[1.02] transition-transform duration-200">
+    <div className="bg-gradient-to-br from-slate-900 to-slate-800 dark:from-surface-dark dark:to-background-dark p-5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm text-white transition-all hover:scale-[1.02]">
       <div className={`h-10 w-10 rounded-lg ${colors[color]} flex items-center justify-center mb-3`}>
         <span className="material-symbols-outlined">{icon}</span>
       </div>
