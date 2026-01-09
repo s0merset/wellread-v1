@@ -36,11 +36,13 @@ const RecommendedBooks = () => {
     <div className="space-y-4">
       {/* Header + Controls */}
       <div className="flex items-center justify-between px-2">
-        <div className="flex items-center gap-2">
-          <span className="material-symbols-outlined text-primary">auto_awesome</span>
-          <h2 className="text-lg font-bold">Recommended for You</h2>
-        </div>
         
+                <div className="flex items-center justify-between mb-6">
+                    <h3 className="text-xl font-bold flex items-center gap-2">
+                      <span className="material-symbols-outlined text-purple-500">explore</span>
+                      Recommended for You
+                    </h3>
+                 </div>
         <div className="flex gap-2">
           <Button
             variant="outline"
