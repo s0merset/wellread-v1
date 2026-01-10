@@ -10,19 +10,19 @@ const userAvatars = [
 const bookCovers = [
   [
     // Column 1
-    "https://covers.openlibrary.org/b/id/8225266-L.jpg", // The Great Gatsby
-    "https://covers.openlibrary.org/b/id/12660731-L.jpg", // Dune
+    "https://covers.openlibrary.org/b/id/9367297-L.jpg", // The Great Gatsby
+    "https://covers.openlibrary.org/b/id/15092781-L.jpg", // Dune
   ],
   [
     // Column 2 (Center)
-    "https://covers.openlibrary.org/b/id/11105417-L.jpg", // The Hobbit
-    "https://covers.openlibrary.org/b/id/12882195-L.jpg", // Atomic Habits
-    "https://covers.openlibrary.org/b/id/12547191-L.jpg", // 1984
+    "https://covers.openlibrary.org/b/id/14627222-L.jpg", // The Hobbit
+    "https://covers.openlibrary.org/b/id/15155627-L.jpg", // Atomic Habits
+    "https://covers.openlibrary.org/b/id/12693610-L.jpg", // 1984
   ],
   [
     // Column 3
-    "https://covers.openlibrary.org/b/id/12629235-L.jpg", // Circe
-    "https://covers.openlibrary.org/b/id/14467770-L.jpg", // Tomorrow, and Tomorrow, and Tomorrow
+    "https://covers.openlibrary.org/b/id/15139354-L.jpg", // Circe
+    "https://covers.openlibrary.org/b/id/14854809-L.jpg", // Tomorrow, and Tomorrow, and Tomorrow
   ],
 ];
 
