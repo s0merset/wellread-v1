@@ -1,10 +1,9 @@
-import React, { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
+import React from "react";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton"; // Assuming you have a skeleton UI
-import { formatDistanceToNow } from "date-fns"; // Optional: for "2h ago" strings
 
-interface Activity {
+// --- Types ---
+// Keeping your rich Activity interface so the UI elements (likes, ratings, books) work
+export interface Activity {
   id: string;
   type: "rating" | "finished" | "list";
   created_at: string;
@@ -25,88 +24,14 @@ interface Activity {
   likes: number;
 }
 
-const FriendActivity = () => {
-  const [activities, setActivities] = useState<Activity[]>([]);
-  const [loading, setLoading] = useState(true);
+interface FriendActivityProps {
+  activities: Activity[];
+  loading?: boolean; // You can pass loading state from Dashboard if you want
+}
 
-  useEffect(() => {
-    const fetchFriendActivity = async () => {
-      try {
-        setLoading(true);
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
-
-        // 1. Get list of user IDs the current user follows
-        const { data: following } = await supabase
-          .from('follows')
-          .select('following_id')
-          .eq('follower_id', user.id);
-
-        const followingIds = following?.map(f => f.following_id) || [];
-        if (followingIds.length === 0) {
-          setActivities([]);
-          setLoading(false);
-          return;
-        }
-
-        // 2. Fetch Recent Book Updates (Finished or Reviewed)
-        const { data: bookUpdates } = await supabase
-          .from('user_books')
-          .select(`
-            id, updated_at, status, rating, review_text,
-            profiles:user_id (full_name, avatar_url, username),
-            books:book_id (title, author, cover_url)
-          `)
-          .in('user_id', followingIds)
-          .order('updated_at', { ascending: false })
-          .limit(10);
-
-        // 3. Fetch Recent Lists
-        const { data: listUpdates } = await supabase
-          .from('lists')
-          .select(`
-            id, created_at, name,
-            profiles:user_id (full_name, avatar_url, username),
-            list_items (count)
-          `)
-          .in('user_id', followingIds)
-          .order('created_at', { ascending: false })
-          .limit(5);
-
-        // 4. Transform and Merge
-        const merged: Activity[] = [
-          ...(bookUpdates || []).map((b: any) => ({
-            id: b.id,
-            type: b.review_text ? "rating" : "finished",
-            created_at: b.updated_at,
-            user: b.profiles,
-            book: b.books,
-            rating: b.rating,
-            review: b.review_text,
-            likes: Math.floor(Math.random() * 20), // Placeholder for real likes table
-          })),
-          ...(listUpdates || []).map((l: any) => ({
-            id: l.id,
-            type: "list",
-            created_at: l.created_at,
-            user: l.profiles,
-            listName: l.name,
-            bookCount: l.list_items?.[0]?.count || 0,
-            likes: Math.floor(Math.random() * 10),
-          }))
-        ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-
-        setActivities(merged);
-      } catch (error) {
-        console.error("Error fetching activity:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchFriendActivity();
-  }, []);
-
+const FriendActivity: React.FC<FriendActivityProps> = ({ activities, loading }) => {
+  
+  // Skeleton Loader (kept your exact styling)
   if (loading) {
     return (
       <div className="flex gap-4 overflow-hidden">
@@ -130,14 +55,12 @@ const FriendActivity = () => {
     <div className="space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between px-2">
-        
-        
         <div className="flex items-center gap-2">
           <span className="material-symbols-outlined text-primary font-fill">group</span>
           <h2 className="font-black text-sm uppercase tracking-widest text-slate-700 dark:text-slate-300">Friend Activity</h2>
         </div>
 
-	<Button variant="ghost" size="sm" className="group/all text-primary hover:bg-primary/5 transition-all text-xs font-bold">
+        <Button variant="ghost" size="sm" className="group/all text-primary hover:bg-primary/5 transition-all text-xs font-bold">
           SEE ALL
           <span className="material-symbols-outlined text-[18px] ml-1 group-hover/all:translate-x-1 transition-transform">
             chevron_right
@@ -165,7 +88,7 @@ const FriendActivity = () => {
               <div className="relative z-10 flex flex-col h-full">
                 {/* User Info Bar */}
                 <div className="flex items-center gap-3 mb-4">
-                  {activity.user.avatar_url ? (
+                  {activity.user?.avatar_url ? (
                     <img
                       src={activity.user.avatar_url}
                       className="size-10 rounded-full border-2 border-white dark:border-slate-800 shadow-sm object-cover shrink-0"
@@ -173,11 +96,13 @@ const FriendActivity = () => {
                     />
                   ) : (
                     <div className="size-10 rounded-full bg-primary flex items-center justify-center font-bold text-white shrink-0 text-xs">
-                      {activity.user.full_name.charAt(0)}
+                      {activity.user?.full_name?.charAt(0) || "U"}
                     </div>
                   )}
                   <div className="min-w-0 flex-1">
-                    <p className="font-black text-sm truncate text-slate-900 dark:text-white">{activity.user.full_name}</p>
+                    <p className="font-black text-sm truncate text-slate-900 dark:text-white">
+                      {activity.user?.full_name || activity.user?.username || "A Reader"}
+                    </p>
                     <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
                       {new Date(activity.created_at).toLocaleDateString()}
                     </p>

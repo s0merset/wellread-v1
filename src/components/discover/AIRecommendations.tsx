@@ -101,7 +101,7 @@ const getCovers = async (books: RecommendedBook[]) => {
   if (loading) {
     return (
       <section className="animate-pulse">
-        <SectionHeader title="Curated For You" subtitle="AI is analyzing your library..." icon="auto_awesome" />
+        <SectionHeader title="Curated For You" subtitle="Analyzing your library..." icon="auto_awesome" />
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6 gap-x-6 gap-y-10">
           {[...Array(6)].map((_, i) => (
             <div key={i} className="aspect-[2/3] w-full rounded-xl bg-slate-200 dark:bg-slate-800" />

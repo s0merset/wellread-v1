@@ -76,78 +76,83 @@ const AddReviewModal: React.FC<AddReviewModalProps> = ({ isOpen, onClose, onSucc
   };
 
   // --- 3. SUBMIT REVIEW ---
-  const handleSubmit = async () => {
-    if (!selectedBook) return;
-    if (rating === 0) {
-      toast.error("Please give a star rating");
-      return;
-    }
+// --- 3. SUBMIT REVIEW ---
+const handleSubmit = async () => {
+  if (!selectedBook) return;
+  if (rating === 0) {
+    toast.error("Please give a star rating");
+    return;
+  }
 
-    try {
-      setLoading(true);
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+  try {
+    setLoading(true);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
 
-      const info = selectedBook.volumeInfo;
-      const title = info.title;
-      const author = info.authors ? info.authors[0] : 'Unknown Author';
-      const cover_url = info.imageLinks?.thumbnail?.replace('http:', 'https:') || ''; // Ensure HTTPS
-      const total_pages = info.pageCount || 0;
+    const info = selectedBook.volumeInfo;
+    const title = info.title;
+    const author = info.authors ? info.authors[0] : 'Unknown Author';
+    const cover_url = info.imageLinks?.thumbnail?.replace('http:', 'https:') || '';
+    const total_pages = info.pageCount || 0;
 
-      // A. Insert/Get Book from 'books' table
-      // We check if book exists by title/author to avoid dupes
-      // (Ideally you'd use a unique Google ID, but sticking to your current schema)
-      let bookId: string;
-      
-      const { data: existingBook } = await supabase
+    // A. Insert/Get Book from 'books' table
+    let bookId: string;
+    
+    const { data: existingBook } = await supabase
+      .from('books')
+      .select('id')
+      .eq('title', title)
+      .eq('author', author)
+      .maybeSingle();
+
+    if (existingBook) {
+      bookId = existingBook.id;
+    } else {
+      const { data: newBook, error: insertError } = await supabase
         .from('books')
-        .select('id')
-        .eq('title', title)
-        .eq('author', author)
-        .maybeSingle();
-
-      if (existingBook) {
-        bookId = existingBook.id;
-      } else {
-        const { data: newBook, error: insertError } = await supabase
-          .from('books')
-          .insert({ title, author, cover_url, total_pages })
-          .select()
-          .single();
-        
-        if (insertError) throw insertError;
-        bookId = newBook.id;
-      }
-
-      // B. Upsert into 'user_books' (Review)
-      // We assume adding a review marks it as 'finished'
-      const { error: reviewError } = await supabase
-        .from('user_books')
-        .upsert({
-          user_id: user.id,
-          book_id: bookId,
-          status: 'finished',
-          rating: rating,
-          review_text: reviewText,
-          is_favorite: false, // Default
-          is_spoiler: isSpoiler,
-          finished_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        }, { onConflict: 'user_id, book_id' }); // Update if exists
-
-      if (reviewError) throw reviewError;
-
-      toast.success("Review published!");
-      onSuccess();
-      onClose();
-
-    } catch (error: any) {
-      console.error(error);
-      toast.error(`Failed to post review: ${error.message}`);
-    } finally {
-      setLoading(false);
+        .insert({ title, author, cover_url, total_pages })
+        .select()
+        .single();
+      
+      if (insertError) throw insertError;
+      bookId = newBook.id;
     }
-  };
+
+    // B. Insert into 'reviews' table 
+    // This triggers the 'notify_followers_on_new_review' SQL function automatically
+    const { error: reviewError } = await supabase
+      .from('reviews')
+      .insert({
+        user_id: user.id,
+        book_id: bookId,
+        rating: rating,
+        content: reviewText,
+        // is_spoiler: isSpoiler // Add this if you added the column to the reviews table
+      });
+
+    if (reviewError) throw reviewError;
+
+    // C. Sync with 'user_books' (So it shows as 'finished' in their library)
+    await supabase
+      .from('user_books')
+      .upsert({
+        user_id: user.id,
+        book_id: bookId,
+        status: 'finished',
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'user_id, book_id' });
+
+    toast.success("Review published and friends notified!");
+    onSuccess();
+    onClose();
+
+  } catch (error: any) {
+    console.error(error);
+    toast.error(`Failed to post review: ${error.message}`);
+  } finally {
+    setLoading(false);
+  }
+};
 
   if (!isOpen) return null;
 
