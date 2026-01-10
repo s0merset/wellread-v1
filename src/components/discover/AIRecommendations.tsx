@@ -50,22 +50,33 @@ const AIRecommendations: React.FC<Props> = ({ userList, onAdd }) => {
   const [recommendations, setRecommendations] = useState<RecommendedBook[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const getCovers = async (books: RecommendedBook[]) => {
-    return Promise.all(
-      books.map(async (book) => {
-        const query = encodeURIComponent(`${book.title} ${book.author}`);
-        try {
-          const res = await fetch(`https://openlibrary.org/search.json?q=${query}&limit=1`);
-          const data = await res.json();
-          const coverId = data.docs[0]?.cover_i;
-          return {
-            ...book,
-            cover: coverId ? `https://covers.openlibrary.org/b/id/${coverId}-L.jpg` : undefined
-          };
-        } catch { return book; }
-      })
-    );
-  };
+const getCovers = async (books: RecommendedBook[]) => {
+  return Promise.all(
+    books.map(async (book) => {
+      const query = encodeURIComponent(`${book.title} ${book.author}`);
+      try {
+        // ADDING A TIMESTAMP (?t=...) forces a fresh request every time
+        const timestamp = new Date().getTime();
+        const res = await fetch(
+          `https://openlibrary.org/search.json?q=${query}&limit=1&_t=${timestamp}`, 
+          { cache: 'no-store' } // Force browser to ignore cache
+        );
+        
+        const data = await res.json();
+        const coverId = data.docs[0]?.cover_i;
+        
+        return {
+          ...book,
+          cover: coverId 
+            ? `https://covers.openlibrary.org/b/id/${coverId}-L.jpg` 
+            : undefined
+        };
+      } catch (e) {
+        return book;
+      }
+    })
+  );
+};
 
   const handleGenerate = useCallback(async () => {
     if (userList.length === 0) return;
