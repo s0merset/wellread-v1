@@ -1,7 +1,6 @@
 import Hero from "@/components/landing/Hero";
 import Features from "@/components/landing/Features";
 import PopularBooks from "@/components/landing/PopularBooks";
-import CommunityReviews from "@/components/landing/CommunityReviews";
 import Footer from "@/components/landing/Footer";
 import Header from "@/components/Header";
 
@@ -14,7 +13,6 @@ const Index = () => {
         <Hero />
         <Features />
         <PopularBooks />
-        <CommunityReviews />
       </main>
       <Footer />
     </div>

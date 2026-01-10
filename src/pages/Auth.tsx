@@ -77,9 +77,6 @@ const Auth: React.FC = () => {
 
         <div className="relative z-10 flex flex-col justify-between p-12 w-full">
           <div className="flex items-center gap-2.5">
-            <div className="size-10 rounded-xl bg-primary flex items-center justify-center shadow-lg shadow-primary/20">
-              <span className="material-symbols-outlined text-white text-[22px]">auto_stories</span>
-            </div>
             <span className="text-2xl font-black tracking-tighter">WellRead</span>
           </div>
 
