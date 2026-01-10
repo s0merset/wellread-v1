@@ -35,3 +35,15 @@ export interface ReadingList {
   isPublic: boolean;
   tags: string[];
 }
+
+export interface RecommendedBook {
+  title: string;
+  author: string;
+  reason: string;
+  tags: string[];
+  cover?: string;
+}
+
+export interface GroqResponse {
+  books: RecommendedBook[];
+}
