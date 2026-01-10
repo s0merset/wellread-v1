@@ -35,7 +35,7 @@ const Header: React.FC<HeaderProps> = ({
         
         {/* LEFT SECTION: LOGO */}
         <div className="flex-1 flex items-center">
-          <Link to="/" className="flex items-center gap-4">
+          <Link to="/dashboard" className="flex items-center gap-4">
             <h2 className="text-lg font-bold leading-tight tracking-[-0.015em] text-slate-900 dark:text-white">WellRead</h2>
           </Link>
         </div>
