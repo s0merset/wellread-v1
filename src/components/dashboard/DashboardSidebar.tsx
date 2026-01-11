@@ -126,7 +126,7 @@ const DashboardSidebar = () => {
       setIsLoggingOut(false);
     } else {
       setTimeout(() => {
-        window.location.href = "/login";
+        window.location.href = "/auth";
       }, 800);
     }
   };
