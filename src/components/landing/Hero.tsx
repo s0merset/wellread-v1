@@ -65,20 +65,6 @@ const Hero = () => {
               </Button>
             </div>
 
-            {/* Social proof */}
-            <div className="mt-6 flex items-center gap-4 text-sm text-muted-foreground">
-              <div className="flex -space-x-2">
-                {userAvatars.map((avatar, index) => (
-                  <div
-                    key={index}
-                    className="size-8 rounded-full border-2 border-background bg-muted bg-cover bg-center"
-                    style={{ backgroundImage: `url("${avatar}")` }}
-                  />
-                ))}
-              </div>
-              <p>Join 50,000+ readers sharing their library.</p>
-            </div>
-          </div>
 
           {/* Right - Book collage */}
           <div className="relative w-full aspect-[4/3] lg:aspect-square">
