@@ -120,4 +120,4 @@ The project is optimized for deployment on Netlify.
 
     Mobile App: Responsive PWA support for tracking on mobile devices.
 
-Created with ❤️ by Francis Rey Betonio
+Created with ❤️ by Francis Rey 
