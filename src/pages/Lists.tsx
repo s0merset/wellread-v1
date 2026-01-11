@@ -7,6 +7,7 @@ import CreateListModal from '@/components/lists/CreateListModal';
 import AddBookToListModal from '@/components/lists/AddToList';
 import UpdateListModal from '@/components/lists/UpdateList';
 import ListViewModal from '@/components/lists/ListView';
+import DeleteListModal from '@/components/lists/DeleteList';
 
 // Define the interface for dynamic list data
 interface ListData {
@@ -149,7 +150,15 @@ const Lists: React.FC = () => {
       />
       <UpdateListModal isOpen={activeModal === 'update'} onClose={() => setActiveModal(null)} onSuccess={fetchLists} list={selectedList} />
       <ListViewModal isOpen={activeModal === 'view'} onClose={() => setActiveModal(null)} listId={selectedList?.id || ""} listTitle={selectedList?.title || ""} onRefresh={fetchLists} />
+      <DeleteListModal 
+        isOpen={activeModal === 'delete'} 
+        onClose={() => setActiveModal(null)} 
+        onSuccess={fetchLists} 
+        list={selectedList} 
+      />
 
+
+	
       <main className="flex-1 flex flex-col lg:flex-row max-w-[1600px] w-full mx-auto">
         <aside className="hidden md:flex w-70 border-r border-slate-200 dark:border-slate-800 ">
           <Sidebar 
@@ -309,7 +318,7 @@ const ListCard: React.FC<{
         </div>
       </div>
 
-      <div className="relative flex items-center justify-center mb-5 h-44 bg-slate-50 dark:bg-black/20 rounded-xl overflow-hidden group-hover:bg-slate-100 dark:group-hover:bg-black/40 transition-colors">
+      <div className="relative flex z-10 items-center justify-center mb-5 h-44 bg-slate-50 dark:bg-black/20 rounded-xl overflow-hidden group-hover:bg-slate-100 dark:group-hover:bg-black/40 transition-colors">
         <div className="absolute w-22 h-32 z-10 transition-all duration-500 ease-out translate-x-10 rotate-[15deg] opacity-70 group-hover:translate-x-24 group-hover:rotate-[25deg] group-hover:opacity-100">
           <img alt="c3" className="w-full h-full object-cover rounded-lg shadow-md border-2 border-white/20" src={displayCovers[2]} />
         </div>
