@@ -26,7 +26,9 @@ const Tracker: React.FC = () => {
   const [isGoalModalOpen, setIsGoalModalOpen] = useState(false);
   const [isSelectBookModalOpen, setIsSelectBookModalOpen] = useState(false);
   const [isReplaceModalOpen, setIsReplaceModalOpen] = useState(false);
-  
+  // Track which book is currently being updated in the modal
+  const [selectedBookForUpdate, setSelectedBookForUpdate] = useState<UserBook | null>(null);
+
   // Challenge is specific to this dashboard view
   const [challenge, setChallenge] = useState({ target: 50, current: 0, ahead: 0, percent: 0 });
 
@@ -55,6 +57,13 @@ const Tracker: React.FC = () => {
       finishedCount: finished.length
     };
   }, [library]);
+
+  const handleOpenUpdateModal = (book: UserBook) => {
+  setSelectedBookForUpdate(book);
+  setIsUpdateModalOpen(true);
+};
+
+
 
   // --- 4. DASHBOARD-SPECIFIC FETCHING (Challenge) ---
   const fetchChallengeData = async () => {
@@ -125,7 +134,10 @@ const Tracker: React.FC = () => {
       <Header variant="app"/>
       
       {/* MODALS */}
-      <UpdateProgressModal isOpen={isUpdateModalOpen} onClose={() => setIsUpdateModalOpen(false)} onSuccess={refresh} bookData={currentlyReading} />
+      <UpdateProgressModal isOpen={isUpdateModalOpen} onClose={() => {
+    setIsUpdateModalOpen(false);
+    setSelectedBookForUpdate(null); // Clear selection on close
+  }} onSuccess={refresh} bookData={selectedBookForUpdate} />
       <EditGoalModal isOpen={isGoalModalOpen} onClose={() => setIsGoalModalOpen(false)} onSuccess={refresh} currentTarget={challenge.target} />
       <SelectBookModal isOpen={isSelectBookModalOpen} onClose={() => setIsSelectBookModalOpen(false)} onSuccess={refresh} />
       <ReplaceBookModal isOpen={isReplaceModalOpen} onClose={() => setIsReplaceModalOpen(false)} onConfirm={confirmReplaceBook} bookTitle={currentlyReading?.books.title || ''} />
@@ -223,7 +235,7 @@ const Tracker: React.FC = () => {
                     </div>
                     
                     <div className="flex gap-3">
-                      <button onClick={() => setIsUpdateModalOpen(true)} className="flex-1 bg-primary hover:bg-blue-600 text-white font-bold text-sm py-2.5 rounded-lg transition-all shadow-lg shadow-primary/20">
+                      <button onClick={() => handleOpenUpdateModal(currentlyReading)} className="flex-1 bg-primary hover:bg-blue-600 text-white font-bold text-sm py-2.5 rounded-lg transition-all shadow-lg shadow-primary/20">
                         Update Progress
                       </button>
                       <button onClick={() => setIsReplaceModalOpen(true)} className="px-4 py-2.5 rounded-lg bg-slate-700 hover:bg-red-500/20 hover:text-red-400 border border-slate-600 text-slate-300 font-bold text-sm transition-all flex items-center gap-2">
@@ -328,7 +340,7 @@ const Tracker: React.FC = () => {
                           </div>
                         </td>
                         <td className="p-4 text-right pr-6">
-                           <button onClick={() => setIsUpdateModalOpen(true)} className="text-primary hover:text-blue-700 text-xs font-bold hover:underline">Update</button>
+                           <button onClick={() =>  handleOpenUpdateModal(book)}className="text-primary hover:text-blue-700 text-xs font-bold hover:underline">Update</button>
                         </td>
                       </tr>
                     ))}
